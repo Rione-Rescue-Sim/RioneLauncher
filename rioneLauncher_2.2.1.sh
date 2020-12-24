@@ -1,15 +1,6 @@
 #!/bin/bash
 #製作者: みぐりー
 
-#ver2.1.1
-#瓦礫なしを選択して複数の実行を指定した場合、2回目以降に瓦礫ありで実行する不具合を修正。
-
-#ver2.2.1
-#終了時間予測を実装
-#マップの最大サイクル数の表示
-
-# hoge
-
 #使用するサーバーを固定したい場合は、例のようにフルパスを指定してください。
 #固定したくない場合は空白で大丈夫です。
 ##例) SERVER="/home/$USER/git/rcrs-server"
@@ -40,22 +31,14 @@ LOOP=1
 #デバッグ用（一応使える）
 LIMIT_CYCLE=0
 
-#更新箇所
-#何も出力がない場合、*** Time: ****を上書きする。true(上書き)もしくはfalse(従来通り)
-OVERWRITING=true
-
 #/////////////////////////////////////////////////////////////
 #ここから先は改変しないでくだせぇ動作が止まっても知らないゾ？↓
-
-
-
-
 
 CurrentVer=7.12
 os=`uname`
 LOCATION=$(cd $(dirname $0); pwd)
 phase=0
-master_url="https://raw.githubusercontent.com/Rione/rionelauncher/master/RioneLauncher.sh"
+master_url="https://raw.githubusercontent.com/taka0628/RioneLauncher/main/rioneLauncher_2.2.1.sh"
 
 if [[ ! -f $LOCATION/$(echo "$0") ]]; then
     echo 'スクリプトと同じディレクトリで実行してください。'
@@ -730,10 +713,6 @@ ambulanceteam_max=`echo "${scenariolist[*]}" | grep -c "ambulanceteam"`
 
 road_max=`grep -c "rcr:road gml:id=" $SERVER/$MAP/map.gml`
 building_max=`grep -c "rcr:building gml:id=" $SERVER/$MAP/map.gml`
-map_time=$(grep -a -C 0 'kernel.timesteps:' $SERVER/$MAP/../config/kernel.cfg | awk '{print $2}')
-echo "map_time: $map_time"
-echo
-
 
 #エラーチェック
 maxlist=( $building_max $road_max $civilian_max $ambulanceteam_max $firebrigade_max $policeforce_max )
@@ -762,19 +741,6 @@ total_score=0
 scores=()
 
 for (( loop = 0; loop < $LOOP; loop++ )); do
-
-    #設定書き込み
-    if [ $brockade = "false" ]; then
-
-        sed -i -e 's/true/false/g' $CONFIG
-        brockademenu="なし"
-
-    else
-
-        sed -i -e 's/false/true/g' $CONFIG
-        brockademenu="あり"
-
-    fi
 
     original_clear
 
@@ -893,7 +859,8 @@ for (( loop = 0; loop < $LOOP; loop++ )); do
 
         else
 
-            for (( ber=1; ber <= $(($1/2)); ber++ )); do
+            for (( ber=1; ber <= $(($1/2)); ber++ ));
+            do
 
                 echo -e "\e[106m "
 
@@ -994,7 +961,6 @@ for (( loop = 0; loop < $LOOP; loop++ )); do
 
         fi
 
-
         #進行度表示
         echo -e "\e[K\c"
         echo -e "      Civilian |"`lording_ber $(($civilian_read*100/${maxlist[2]})) 2` "\e[m|" `proportion $(($civilian_read*100/${maxlist[2]}))`
@@ -1011,6 +977,9 @@ for (( loop = 0; loop < $LOOP; loop++ )); do
         echo -e "\e[K\c"
         echo -e "   PoliceForce |"`lording_ber $(($policeforce_read*100/${maxlist[5]})) 5` "\e[m|" `proportion $(($policeforce_read*100/${maxlist[5]}))`
         echo
+
+        echo -e "\e[K\c"
+
 
         if [ `grep -c "Loader is not found." agent.log` -eq 1 ]; then
 
@@ -1040,7 +1009,6 @@ for (( loop = 0; loop < $LOOP; loop++ )); do
                 echo
                 echo " ● シミュレーションを開始します！！"
                 echo "　※ 中断する場合は[C+Ctrl]を入力してください"
-                echo "  ※ 表示される時間はループを含む終了予測時間です（単位　分）"
                 echo
                 echo
                 echo "＜端末情報＞"
@@ -1066,12 +1034,8 @@ for (( loop = 0; loop < $LOOP; loop++ )); do
 
     next_cycle=0
 
-    start_time=`date +%s`
-
     while true
     do
-
-        dis_time=`date +%s`
 
         kill_subwindow
 
@@ -1083,56 +1047,18 @@ for (( loop = 0; loop < $LOOP; loop++ )); do
 
         [ -z $cycle ] && cycle=0
 
-        # temp_lastline=0
-
-
-     
         if [[ $next_cycle -eq $cycle ]]; then
 
-            # echo -n "**** Time: $cycle *************************"
-            # 表示がかぶることがあるので最後に結合して出力を行う
-            str_cycle="**** Time: ${cycle} / $map_time*************************"
-            echo -n "$str_cycle"
-        
-            next_cycle=$(($cycle + 1))
-        fi
+            echo '**** Time:' $cycle '*************************'
+            echo 
 
-        
+            next_cycle=$(($cycle + 1))
+
+        fi
 
         tail -n $((`wc -l agent.log | awk '{print $1}'` - $lastline)) agent.log
-        temp_lastline=$lastline
+
         lastline=$(wc -l agent.log | awk '{print $1}')
-
-                # 何も出力がなければ上書き
-        if [[ $temp_lastline -eq $lastline ]] && [[ $OVERWRITING = "true" ]] ; then
-               
-                # echo temp: $temp_lastline
-                # echo lastline: $lastline
-                end_time=`date +%s`
-                run_time=$(($end_time - $start_time))
-                # echo "run: $run_time"
-                # 少数計算　scaleは小数点以下の精度
-                # 経過時間/サイクル
-                run_time=`echo "scale=5; $run_time / $next_cycle" | bc`
-                # echo "run: $run_time"
-                # ループを含む残りサイクル数
-                rem_cycle=`echo "scale=5; ($map_time - $cycle) + ($map_time * ($LOOP - $loop - 1))" | bc`
-                # echo "rem: $rem_cycle"
-                # 予測時間
-                exp_time=`echo "scale=2; ($rem_cycle * $run_time) / 60" | bc`
-                str_exp=" | ${exp_time}[m]    "
-                
-                echo -e "\r\c"　#カーソルを先頭に戻し、改行しない→上書き
-                echo -n "$str_cycle $str_exp"
-                echo -e "\r\c"　#カーソルを先頭に戻し、改行しない→上書き
-                
-            else
-                echo
-
-        fi
-
-
-        
 
         if [[ ! $LIMIT_CYCLE -eq 0 ]] && [[ $cycle -ge $LIMIT_CYCLE ]] || [[ $cycle -ge $config_cycle ]]; then
 
@@ -1140,22 +1066,8 @@ for (( loop = 0; loop < $LOOP; loop++ )); do
             echo "● シミュレーション終了！！"
             echo
 
-            # while [[ -z `echo $score | grep "^-\?[0-9]\+\.\?[0-9]*$"` ]]; do
-            #     score=$(grep -a -C 0 'Score:' $SERVER/boot/logs/kernel.log | tail -n 1 | awk '{print $5}')
-            # done
-
-            sync
-            sleep 1
-            score=$(grep -a -C 0 'Score:' $SERVER/boot/logs/kernel.log | tail -n 1 | awk '{print $5}')
-            loop_cnt=0
-            while true; do
-                loop_cnt=$((++loop_cnt))
+            while [[ -z `echo $score | grep "^-\?[0-9]\+\.\?[0-9]*$"` ]]; do
                 score=$(grep -a -C 0 'Score:' $SERVER/boot/logs/kernel.log | tail -n 1 | awk '{print $5}')
-                # echo "loop_cnt: $loop_cnt"
-                # echo
-                if [ ${#score} -gt 10 ] || [ $loop_cnt -gt 10 ]; then
-                    break
-                fi
             done
             
             scores+=($score)
@@ -1163,10 +1075,10 @@ for (( loop = 0; loop < $LOOP; loop++ )); do
             echo "◆ 最終スコアは"$score"でした。"
             
             [ ! -f score.csv ] && echo 'Date, Score, Server, Agent, Map, Blockade' > score.csv
-            [ $brockademenu = 'あり' ] && is_blockade_exit=yes
-            [ $brockademenu = 'なし' ] && is_blockade_exit=no
+            [ $brockademenu = 'あり' ] && brockademenu=yes
+            [ $brockademenu = 'なし' ] && brockademenu=no
 
-            echo "$(date +%Y/%m/%d_%H:%M), $score, $(echo $SERVER | sed "s@/home/$USER/@@g"), $(echo $AGENT | sed "s@/home/$USER/@@g"), $(echo $MAP | sed 's@/map/@@g' | sed 's@/map@@g' | sed 's@/maps@maps@g'), $is_blockade_exit" >> score.csv
+            echo "$(date +%Y/%m/%d_%H:%M), $score, $(echo $SERVER | sed "s@/home/$USER/@@g"), $(echo $AGENT | sed "s@/home/$USER/@@g"), $(echo $MAP | sed 's@/map/@@g' | sed 's@/map@@g' | sed 's@/maps@maps@g'), $brockademenu" >> score.csv
             echo
             echo "スコアは'score.csv'に記録しました。"
             echo
@@ -1180,8 +1092,6 @@ for (( loop = 0; loop < $LOOP; loop++ )); do
         fi
 
         sleep 1
-
-        
 
     done
 
