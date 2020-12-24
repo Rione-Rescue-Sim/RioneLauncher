@@ -8,7 +8,7 @@
 #終了時間予測を実装
 #マップの最大サイクル数の表示
 
-# hogehoge
+# hoge
 
 #使用するサーバーを固定したい場合は、例のようにフルパスを指定してください。
 #固定したくない場合は空白で大丈夫です。
@@ -219,9 +219,9 @@ if [[ ! -z $1 ]]; then
     fi
 fi
 
-# if [[ $DEBUG_FLAG == 'false' ]]; then
-#     update &
-# fi
+if [[ $DEBUG_FLAG == 'false' ]]; then
+    update &
+fi
 
 echo
 echo 
