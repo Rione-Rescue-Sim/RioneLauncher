@@ -40,13 +40,13 @@ LOOP=1
 #デバッグ用（一応使える）
 LIMIT_CYCLE=0
 
+
 #更新箇所
 #何も出力がない場合、*** Time: ****を上書きする。true(上書き)もしくはfalse(従来通り)
 OVERWRITING=true
 
 #/////////////////////////////////////////////////////////////
 #ここから先は改変しないでくだせぇ動作が止まっても知らないゾ？↓
-
 
 
 
@@ -69,6 +69,8 @@ fi
 #[C+ctrl]検知
 trap 'last' {1,2,3,15}
 rm $LOCATION/.signal &>/dev/null
+
+# 1
 
 killcommand(){
 
@@ -223,9 +225,9 @@ if [[ ! -z $1 ]]; then
     fi
 fi
 
-# if [[ $DEBUG_FLAG == 'false' ]]; then
-#     update &
-# fi
+if [[ $DEBUG_FLAG == 'false' ]]; then
+    update &
+fi
 
 echo
 echo 
