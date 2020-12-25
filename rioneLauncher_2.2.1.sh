@@ -1,13 +1,9 @@
 #!/bin/bash
 #製作者: みぐりー
 
-#ver2.1.1
-#瓦礫なしを選択して複数の実行を指定した場合、2回目以降に瓦礫ありで実行する不具合を修正。
-
-#ver2.2.1
-#終了時間予測を実装
-#マップの最大サイクル数の表示
-
+#ver2.2.2
+#自動アップデートを復活
+# コンパイルの進捗バーが大量に表示される不具合を改善
 
 #使用するサーバーを固定したい場合は、例のようにフルパスを指定してください。
 #固定したくない場合は空白で大丈夫です。
@@ -50,7 +46,7 @@ OVERWRITING=true
 
 
 
-CurrentVer=7.12
+CurrentVer=2.2.2
 os=`uname`
 LOCATION=$(cd $(dirname $0); pwd)
 phase=0
@@ -69,7 +65,6 @@ fi
 trap 'last' {1,2,3,15}
 rm $LOCATION/.signal &>/dev/null
 
-# 1
 
 killcommand(){
 
@@ -735,9 +730,9 @@ ambulanceteam_max=`echo "${scenariolist[*]}" | grep -c "ambulanceteam"`
 
 road_max=`grep -c "rcr:road gml:id=" $SERVER/$MAP/map.gml`
 building_max=`grep -c "rcr:building gml:id=" $SERVER/$MAP/map.gml`
+
+# マップの最大サイクル数を取得
 map_time=$(grep -a -C 0 'kernel.timesteps:' $SERVER/$MAP/../config/kernel.cfg | awk '{print $2}')
-echo "map_time: $map_time"
-echo
 
 
 #エラーチェック
@@ -1017,6 +1012,7 @@ for (( loop = 0; loop < $LOOP; loop++ )); do
         echo -e "   PoliceForce |"`lording_ber $(($policeforce_read*100/${maxlist[5]})) 5` "\e[m|" `proportion $(($policeforce_read*100/${maxlist[5]}))`
         echo
 
+
         if [ `grep -c "Loader is not found." agent.log` -eq 1 ]; then
 
             errerbreak
@@ -1057,9 +1053,10 @@ for (( loop = 0; loop < $LOOP; loop++ )); do
 
         fi
 
-        sleep 1
-
+        # sync
         echo -e "\e[11;0H" #カーソルを11行目の0列目に戻す
+        
+        sleep 1
 
     done
 
@@ -1094,9 +1091,10 @@ for (( loop = 0; loop < $LOOP; loop++ )); do
      
         if [[ $next_cycle -eq $cycle ]]; then
 
-            # echo -n "**** Time: $cycle *************************"
+            # echo -n "**** Time: $cycle / $map_time*************************"
+            # echo -n " "
             # 表示がかぶることがあるので最後に結合して出力を行う
-            str_cycle="**** Time: ${cycle} / $map_time*************************"
+            str_cycle="**** Time: ${cycle} / $map_time　*************************"
             echo -n "$str_cycle"
         
             next_cycle=$(($cycle + 1))
