@@ -55,7 +55,8 @@ CurrentVer=7.12
 os=`uname`
 LOCATION=$(cd $(dirname $0); pwd)
 phase=0
-master_url="https://raw.githubusercontent.com/taka0628/RioneLauncher/main/rioneLauncher_2.2.1.sh"
+# master_url="https://raw.githubusercontent.com/taka0628/RioneLauncher/main/rioneLauncher_2.2.1.sh"
+master_url="https://raw.githubusercontent.com/taka0628/RioneLauncher/develop/rioneLauncher_2.2.1.sh"
 
 echo $0
 echo $LOCATION
