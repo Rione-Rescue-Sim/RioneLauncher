@@ -994,6 +994,7 @@ for (( loop = 0; loop < $LOOP; loop++ )); do
 
         fi
 
+        
 
         #進行度表示
         echo -e "\e[K\c"
@@ -1012,6 +1013,7 @@ for (( loop = 0; loop < $LOOP; loop++ )); do
         echo -e "   PoliceForce |"`lording_ber $(($policeforce_read*100/${maxlist[5]})) 5` "\e[m|" `proportion $(($policeforce_read*100/${maxlist[5]}))`
         echo
 
+        sync
 
         if [ `grep -c "Loader is not found." agent.log` -eq 1 ]; then
 
@@ -1053,8 +1055,6 @@ for (( loop = 0; loop < $LOOP; loop++ )); do
 
         fi
 
-        sleep 1
-        
         echo -e "\e[11;0H" #カーソルを11行目の0列目に戻す
         
         sleep 1
