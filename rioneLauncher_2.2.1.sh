@@ -8,6 +8,8 @@
 #終了時間予測を実装
 #マップの最大サイクル数の表示
 
+# hoge
+
 #使用するサーバーを固定したい場合は、例のようにフルパスを指定してください。
 #固定したくない場合は空白で大丈夫です。
 ##例) SERVER="/home/$USER/git/rcrs-server"
@@ -54,6 +56,9 @@ os=`uname`
 LOCATION=$(cd $(dirname $0); pwd)
 phase=0
 master_url="https://raw.githubusercontent.com/taka0628/RioneLauncher/main/rioneLauncher_2.2.1.sh"
+
+echo $0
+echo $LOCATION
 
 if [[ ! -f $LOCATION/$(echo "$0") ]]; then
     echo 'スクリプトと同じディレクトリで実行してください。'
@@ -217,9 +222,9 @@ if [[ ! -z $1 ]]; then
     fi
 fi
 
-if [[ $DEBUG_FLAG == 'false' ]]; then
-    update &
-fi
+# if [[ $DEBUG_FLAG == 'false' ]]; then
+#     update &
+# fi
 
 echo
 echo 
