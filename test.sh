@@ -37,17 +37,17 @@ LIMIT_CYCLE=0
 
 #更新箇所
 #何も出力がない場合、*** Time: ****を上書きする。true(上書き)もしくはfalse(従来通り)
-OVERWRITING=false
+OVERWRITING=true
 
 # シャットダウンの設定
 # true: シャットダウンが選択可能　false: 選択項目を表示しない
-SHUTDOUW=true
+SHUTDOUW=false
 
 #/////////////////////////////////////////////////////////////
 #ここから先は改変しないでくだせぇ動作が止まっても知らないゾ？↓
 
 # 自動アップデート無効: true, 有効: false
-DEBUG_FLAG=false
+DEBUG_FLAG=true
 
 
 
@@ -529,6 +529,7 @@ if [ ! -f $SERVER/$MAP/scenario.xml ] || [ $ChangeConditions -eq 1 ] || [ -z $MA
         do
 
             read mapnumber
+            doAllMap="false"
 
             #入力エラーチェック
             if [ ! -z `expr "$mapnumber" : '\([0-9][0-9]*\)'` ] && [ 0 -lt $mapnumber ] && [ $mapnumber -le $line ]; then
@@ -552,7 +553,7 @@ if [ ! -f $SERVER/$MAP/scenario.xml ] || [ $ChangeConditions -eq 1 ] || [ -z $MA
             elif [ $mapnumber -eq 99 ]; then
 
                 echo "testを除くマップで実行します"
-                isAllMap="true"
+                doAllMap="true"
                 #アドレス代入
                 MAP=`echo ${mapdirinfo[0]} | sed 's/+@+/ /g' | awk '{print $2}'`
                 break
@@ -814,6 +815,7 @@ IFS=$' \t\n'
 #////////////////////////////////////////////////////////////////////////////////////////////////////
 
 currentMapIdx=0
+echo "${doAllMap}"
 
 while true
 do
@@ -1161,10 +1163,9 @@ do
                 str_cycle="**** Time: ${cycle} / $map_time　*************************"
                 echo -n "$str_cycle"
             
-                next_cycle=$(($cycle + 1))
             fi
 
-            
+            next_cycle=$(($cycle + 1))
 
             tail -n $((`wc -l agent.log | awk '{print $1}'` - $lastline)) agent.log
             temp_lastline=$lastline
@@ -1275,7 +1276,7 @@ do
     echo
 
 # すべてのマップ実行時
-    if [ isAllMap="true" ]; then
+    if [ ${doAllMap} = "true" ]; then
 
         currentMapIdx=$(($currentMapIdx+1))
         
@@ -1286,12 +1287,17 @@ do
         else
 
             echo
-            echo "########## $(($currentMapIdx+1)) / $toalMapCount Start ##################"
+            echo "########## $(($currentMapIdx+1)) / $toalMapCount Maps ##################"
             echo
             MAP=`echo ${mapdirinfo[$(($currentMapIdx))]} | sed 's/+@+/ /g' | awk '{print $2}'`
             sleep 10
 
         fi
+
+    else
+
+        break
+
     fi
 done
 
