@@ -1,9 +1,11 @@
 #!/bin/bash
 #製作者: みぐりー
 
-#ver2.2.2
-#自動アップデートを復活
-# コンパイルの進捗バーが大量に表示される不具合を改善
+#ver2.3.1
+# 2/16
+#[add]終了後にシャットダウンができるように変更
+#[add]すべてのマップを実行する機能を追加
+#[fix]ループ表示が止まる症状を修正
 
 #使用するサーバーを固定したい場合は、例のようにフルパスを指定してください。
 #固定したくない場合は空白で大丈夫です。
@@ -43,11 +45,13 @@ OVERWRITING=true
 # true: シャットダウンが選択可能　false: 選択項目を表示しない
 SHUTDOUW=false
 
+# 自動アップデート有効: true, 無効: false
+UPDATE=true
+
 #/////////////////////////////////////////////////////////////
 #ここから先は改変しないでくだせぇ動作が止まっても知らないゾ？↓
 
-# 自動アップデート無効: true, 有効: false
-DEBUG_FLAG=true
+DEBUG_FLAG=false
 
 
 
@@ -222,9 +226,10 @@ if [[ ! -z $1 ]]; then
         ChangeConditions=1
     fi
 fi
-
-if [[ $DEBUG_FLAG == 'false' ]]; then
-    update &
+if [[ $UPDATE == "true" ]]; then
+    if [[ $DEBUG_FLAG == 'false' ]]; then
+        update &
+    fi
 fi
 
 echo
@@ -815,7 +820,6 @@ IFS=$' \t\n'
 #////////////////////////////////////////////////////////////////////////////////////////////////////
 
 currentMapIdx=0
-echo "${doAllMap}"
 
 while true
 do
@@ -1301,7 +1305,7 @@ do
     fi
 done
 
-if [ ${canShutDown} = "true" ]; then
+if [[ ${canShutDown} == "true" ]]; then
 
     echo "3分後にシャットダウンします"
     sleep 5
