@@ -44,7 +44,7 @@ OVERWRITING=true
 
 # シャットダウンの設定
 # true: シャットダウンが選択可能　false: 選択項目を表示しない
-SHUTDOUW=true
+SHUTDOUW=false
 
 # 自動アップデート有効: true, 無効: false
 UPDATE=true
