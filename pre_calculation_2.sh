@@ -8,8 +8,9 @@ cd $AGENT
 
 bash compile.sh ; bash launch.sh -t 1,0,1,0,1,0 -h localhost -pre 1 & APID=$! ; sleep 120 ; kill $APID
 
-bash ../$KILL
+ps -ef | grep `cd .. && pwd`| grep -v 'pre_calculation_1.sh' | awk '{print "kill -9",$2}' | sh >/dev/null 2>&1
 
-echo "pre_calculation_1 の実行を[Ctrl + C]で終了してください"
+
+sleep 1
 
 bash launch.sh -all
