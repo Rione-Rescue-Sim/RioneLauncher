@@ -57,10 +57,15 @@ UPDATE=false
 PATH_SCORE="/score.csv"
 PATH_GDRIVE="/gdrive/remote/"
 
-# ブランチを切り替えて全マップを回す
+# ブランチを切り替えて全マップを回す場合
+# canBranchChange="false"
 canBranchChange="true"
 branch_array=()
-branch_array=("${branch_array[@]}" "hoge1")
+# ブランチ名を記述
+branch_array=("${branch_array[@]}" "master")
+branch_array=("${branch_array[@]}" "feature/21_PF_beforehand")
+branch_array=("${branch_array[@]}" "feature/dev/31_PF_taskeset")
+branch_array=("${branch_array[@]}" "feature/28_review_extinguishing")
 
 #/////////////////////////////////////////////////////////////
 #ここから先は改変しないでくだせぇ動作が止まっても知らないゾ？↓
@@ -254,6 +259,9 @@ echo "  ● ディレクトリ検索中..."
 
 #環境変数変更
 IFS=$'\n'
+
+# ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+# ユーザ選択処理
 
 #サーバーディレクトリの登録
 if [[ -z $SERVER ]] || [[ $ChangeConditions -eq 1 ]] || [[ ! -f $SERVER/boot/start-comprun.sh ]]; then
@@ -732,7 +740,7 @@ if [ $SHUTDOUW = "true" ]; then
 
             echo 'シャットダウンは行いません'
             canShutDown="false"
-            sleep 5
+            sleep 2
             break
 
         elif [ ${canShutDown} = "confirm" ]; then
@@ -740,7 +748,7 @@ if [ $SHUTDOUW = "true" ]; then
             echo '終了時にシャットダウンを行います'
             canShutDown='true'
             google-drive-ocamlfuse gdrive
-            sleep 5
+            sleep 2
             break
 
         else
@@ -753,6 +761,58 @@ if [ $SHUTDOUW = "true" ]; then
         fi
     done
 fi
+
+# ブランチ切り替え許可
+if [[ $canBranchChange = "true" ]] && [[ $mapnumber -eq 99 ]]; then
+
+    echo "ブランチの変更を許可しますか？"
+    echo
+    echo "*****************************"
+    echo
+    cd
+    cd $AGENT
+    git status
+    git branch
+    echo
+    echo "*****************************"
+    echo
+    echo "遷移ブランチリスト"
+    branch_array_end_idx=0
+    for e in ${branch_array[@]}; do
+
+        echo "array[$branch_array_end_idx]: ${e}"
+        let branch_array_end_idx++
+
+    done 
+    echo
+    echo "yes: confirm  |  no: n"
+
+    while true; do
+
+        read canBranchChange
+
+        if [[ $canBranchChange = "confirm" ]]; then
+        
+            canBranchChange="true"
+            break
+
+        elif [[ $canBranchChange = "n" ]]; then
+
+            canBranchChange="no"
+            break
+        
+        else
+
+            echo "$canBranchChange　が入力されました"
+            echo "再度入力してください"
+        
+        fi
+
+    done
+
+fi
+
+# ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 #読み込み最大値取得
@@ -847,440 +907,446 @@ do
     
     # ///////////////////////////////////////////////////////////////////////////////////////////
     # マップ内ループ
-    for (( loop = 0; loop < $LOOP; loop++ )); do
+    # レスキューシミュレーションの実行フラグ　デバッグ用
+    canExeSimuration="false"
+    if [[ $canExeSimuration = "true" ]]; then
 
-        #設定書き込み
-        if [ $brockade = "false" ]; then
+        for (( loop = 0; loop < $LOOP; loop++ )); do
 
-            sed -i -e 's/true/false/g' $CONFIG
-            brockademenu="なし"
+            #設定書き込み
+            if [ $brockade = "false" ]; then
 
-        else
-
-            sed -i -e 's/false/true/g' $CONFIG
-            brockademenu="あり"
-
-        fi
-
-        original_clear
-
-        rm server.log &>/dev/null
-        rm agent.log &>/dev/null
-
-        touch agent.log
-        touch server.log
-
-        echo
-        echo "########## $(($loop+1)) / $LOOP Start ##################"
-        echo
-
-        cd $SERVER/boot/
-
-        if [ `grep -c "trap" start.sh` -eq 1 ]; then
-
-            START_LAUNCH="start.sh"
-
-        else
-
-            START_LAUNCH="start-comprun.sh"
-
-        fi
-
-        cp $START_LAUNCH "backup-$START_LAUNCH"
-
-        sed -i "s/$(cat $START_LAUNCH | grep 'startKernel')/startKernel --nomenu --autorun/g" $START_LAUNCH
-        sed -i "s/$(cat $START_LAUNCH | grep 'startSims')/startSims --nogui/g" $START_LAUNCH
-
-        #サーバー起動
-        if [ $os = "Linux" ]; then
-
-            gnome-terminal --tab -x bash -c  "
-
-                #[C+ctrl]検知
-                trap 'last2' {1,2,3}
-                last2(){
-                    echo -en "\x01" > $LOCATION/.signal
-                    exit 1
-                }
-
-                bash $START_LAUNCH -m ../$MAP/ -c ../`echo $CONFIG | sed "s@$SERVER/@@g" | sed 's@collapse.cfg@@g'` 2>&1 | tee $LOCATION/server.log
-
-                read waitserver
-
-            " &
-
-        else
-
-            bash $START_LAUNCH -m ../$MAP/ -c ../`echo $CONFIG | sed "s@$SERVER/@@g" | sed 's@collapse.cfg@@g'` > $LOCATION/server.log &
-
-        fi
-
-        #サーバー待機
-        echo " ▼ サーバー起動中..."
-        echo
-        echo "  ※ 以下にエラーが出ることがありますが無視して構いません"
-
-        while true
-        do
-
-            kill_subwindow
-
-            if [ ! `grep -c "waiting for misc to connect..." $LOCATION/server.log` -eq 0 ]; then
-
-                sleep 3
-
-                break
-
-            fi
-
-        done
-
-        original_clear
-
-        echo
-        echo " ▼ 以下の環境を読み込んでいます..."
-        echo
-        echo "      サーバー ："`echo $SERVER | sed 's@/@ @g' | awk '{print $NF}'`
-        echo "  エージェント ："`echo $AGENT | sed 's@/@ @g' | awk '{print $NF}'`
-        echo "        マップ ："`echo $MAP | sed 's@/map/@@g' | sed 's@/maps@maps@g'`
-        echo "  　　　　瓦礫 ："$brockademenu
-
-        #エージェント起動
-        cd $AGENT
-
-        if [[ $loop -eq 0 ]]; then
-            echo
-            echo -n "  コンパイル中..."
-            bash compile.sh > $LOCATION/agent.log 2>&1
-        else
-            echo
-            echo -n "  Ready..."
-            echo 'Done.' > $LOCATION/agent.log
-        fi
-        
-        
-        if [[ -f 'start.sh' ]]; then
-
-            bash start.sh -1 -1 -1 -1 -1 -1 localhost >> $LOCATION/agent.log 2>&1 &
-
-        else
-
-            bash ./launch.sh -all -local >> $LOCATION/agent.log 2>&1 &
-
-        fi
-
-        cd $LOCATION
-
-        lording_ber(){
-
-            if [ $1 -le 0 ] && [ $2 -eq 0 -o $2 -eq 1 ]; then
-
-                echo "　 サーバーから読み込むことができませんでした。　"
+                sed -i -e 's/true/false/g' $CONFIG
+                brockademenu="なし"
 
             else
 
-                for (( ber=1; ber <= $(($1/2)); ber++ )); do
-
-                    echo -e "\e[106m "
-
-                done
-
-                for (( ber=1; ber <= $((50-$1/2)); ber++ )); do
-
-                    echo -e "\e[107m "
-
-                done
+                sed -i -e 's/false/true/g' $CONFIG
+                brockademenu="あり"
 
             fi
 
-        }
+            original_clear
 
-        proportion(){
+            rm server.log &>/dev/null
+            rm agent.log &>/dev/null
 
-            if [ ! $1 -lt 0 ]; then
+            touch agent.log
+            touch server.log
 
-                echo $1"%"
+            echo
+            echo "########## $(($loop+1)) / $LOOP Start ##################"
+            echo
 
-            fi
+            cd $SERVER/boot/
 
-        }
+            if [ `grep -c "trap" start.sh` -eq 1 ]; then
 
-        #エラーチェック
-        if [ -f agent.log ]; then
-
-            #errer
-            if [ `grep -c "Failed." agent.log` -eq 1 ]; then
-
-                echo " エラー"
-                echo
-                echo
-                echo " ＜エラー内容＞"
-                echo
-                cat agent.log
-                echo
-                echo " コンパイルエラー...開始できませんでした...ｻｰｾﾝ( ・ω ・)ゞ"
-                echo
-
-                killcommand
-
-                exit 1
-
-            fi
-
-            #sucsess
-            if [ `grep -c "Done." agent.log` -ge 1 ]; then
-
-                echo "(*'-')b"
-                echo
-
-            fi
-
-        fi
-            
-        while true
-        do
-
-            kill_subwindow
-
-            #ログ読み込み
-            if [ `grep -c "trap" $SERVER/boot/start.sh` -eq 1 ]; then
-
-                building_read=-1
-                road_read=-1
+                START_LAUNCH="start.sh"
 
             else
 
-                building_read=`grep -c "floor:" server.log`
-                road_read=`grep -c "Road " server.log`
+                START_LAUNCH="start-comprun.sh"
 
             fi
 
-            ambulanceteam_read=`grep -c "PlatoonAmbulance@" agent.log`
-            firebrigade_read=`grep -c "PlatoonFire@" agent.log`
-            policeforce_read=`grep -c "PlatoonPolice@" agent.log`
-            civilian_read=$((`cat server.log | grep "INFO launcher : Launching instance" | awk '{print $6}' | sed -e 's/[^0-9]//g' | awk '{if (max<$1) max=$1} END {print max}'`-1))
+            cp $START_LAUNCH "backup-$START_LAUNCH"
 
-            if [ $civilian_read -lt 0 ]; then
+            sed -i "s/$(cat $START_LAUNCH | grep 'startKernel')/startKernel --nomenu --autorun/g" $START_LAUNCH
+            sed -i "s/$(cat $START_LAUNCH | grep 'startSims')/startSims --nogui/g" $START_LAUNCH
 
-                civilian_read=0
+            #サーバー起動
+            if [ $os = "Linux" ]; then
 
-            fi
+                gnome-terminal --tab -x bash -c  "
 
-            #ロード絶対100%に修正する
-            if [ $(($building_read*100/${maxlist[0]})) -eq 100 ]; then
+                    #[C+ctrl]検知
+                    trap 'last2' {1,2,3}
+                    last2(){
+                        echo -en "\x01" > $LOCATION/.signal
+                        exit 1
+                    }
 
-                if [ ! $ambulanceteam_read -eq 0 ] || [ ! $firebrigade_read -eq 0 ] || [ ! $policeforce_read -eq 0 ] || [ ! $civilian_read -eq 0 ]; then
-                    
-                    if [ ! $road_max -eq 0 ]; then
+                    bash $START_LAUNCH -m ../$MAP/ -c ../`echo $CONFIG | sed "s@$SERVER/@@g" | sed 's@collapse.cfg@@g'` 2>&1 | tee $LOCATION/server.log
 
-                        road_read=${maxlist[1]}
-                    
-                    fi
-                fi
+                    read waitserver
 
-            fi
+                " &
 
-            
+            else
 
-            #進行度表示
-            echo -e "\e[K\c"
-            echo -e "      Civilian |"`lording_ber $(($civilian_read*100/${maxlist[2]})) 2` "\e[m|" `proportion $(($civilian_read*100/${maxlist[2]}))`
-            echo
-
-            echo -e "\e[K\c"
-            echo -e " AmbulanceTeam |"`lording_ber $(($ambulanceteam_read*100/${maxlist[3]})) 3` "\e[m|" `proportion $(($ambulanceteam_read*100/${maxlist[3]}))`
-            echo
-
-            echo -e "\e[K\c"
-            echo -e "   FireBrigade |"`lording_ber $(($firebrigade_read*100/${maxlist[4]})) 4` "\e[m|" `proportion $(($firebrigade_read*100/${maxlist[4]}))`
-            echo
-
-            echo -e "\e[K\c"
-            echo -e "   PoliceForce |"`lording_ber $(($policeforce_read*100/${maxlist[5]})) 5` "\e[m|" `proportion $(($policeforce_read*100/${maxlist[5]}))`
-            echo
-
-            sync
-
-            if [ `grep -c "Loader is not found." agent.log` -eq 1 ]; then
-
-                errerbreak
+                bash $START_LAUNCH -m ../$MAP/ -c ../`echo $CONFIG | sed "s@$SERVER/@@g" | sed 's@collapse.cfg@@g'` > $LOCATION/server.log &
 
             fi
 
-            if [ ! `grep -c "Done connecting to server" agent.log` -eq 0 ]; then
+            #サーバー待機
+            echo " ▼ サーバー起動中..."
+            echo
+            echo "  ※ 以下にエラーが出ることがありますが無視して構いません"
 
-                if [ `cat agent.log | grep "Done connecting to server" | awk '{print $6}' | sed -e 's/(//g'` -eq 0 ]; then
+            while true
+            do
 
-                    errerbreak
+                kill_subwindow
 
-                fi
+                if [ ! `grep -c "waiting for misc to connect..." $LOCATION/server.log` -eq 0 ]; then
 
-                if [ `cat agent.log | grep "Done connecting to server" | awk '{print $6}' | sed -e 's/(//g'` -gt 0 ]; then
-
-                    if [[ $START_LAUNCH = "start.sh" ]]; then
-                    
-                        [ ! `grep -c "failed: No more agents" server.log` -eq 1 ] && continue
-
-                    fi
-
-                    echo
-                    echo " ▼ 準備完了。"
-                    echo
-                    echo
-                    echo " ● シミュレーションを開始します！！"
-                    echo "　※ 中断する場合は[C+Ctrl]を入力してください"
-                    echo "  ※ 表示される時間はループを含む終了予測時間です（単位　分）"
-                    echo
-                    echo
-                    echo "＜端末情報＞"
-                    echo
+                    sleep 3
 
                     break
 
                 fi
 
+            done
+
+            original_clear
+
+            echo
+            echo " ▼ 以下の環境を読み込んでいます..."
+            echo
+            echo "      サーバー ："`echo $SERVER | sed 's@/@ @g' | awk '{print $NF}'`
+            echo "  エージェント ："`echo $AGENT | sed 's@/@ @g' | awk '{print $NF}'`
+            echo "        マップ ："`echo $MAP | sed 's@/map/@@g' | sed 's@/maps@maps@g'`
+            echo "  　　　　瓦礫 ："$brockademenu
+
+            #エージェント起動
+            cd $AGENT
+
+            if [[ $loop -eq 0 ]]; then
+                echo
+                echo -n "  コンパイル中..."
+                bash compile.sh > $LOCATION/agent.log 2>&1
+            else
+                echo
+                echo -n "  Ready..."
+                echo 'Done.' > $LOCATION/agent.log
+            fi
+            
+            
+            if [[ -f 'start.sh' ]]; then
+
+                bash start.sh -1 -1 -1 -1 -1 -1 localhost >> $LOCATION/agent.log 2>&1 &
+
+            else
+
+                bash ./launch.sh -all -local >> $LOCATION/agent.log 2>&1 &
+
             fi
 
-            echo -e "\e[11;0H" #カーソルを11行目の0列目に戻す
-            
-            sleep 1
+            cd $LOCATION
 
-        done
+            lording_ber(){
 
-        #agent.logの読み込み
-        lastline=`grep -e "FINISH" -n agent.log | sed -e 's/:.*//g' | awk '{if (max<$1) max=$1} END {print max}'`
+                if [ $1 -le 0 ] && [ $2 -eq 0 -o $2 -eq 1 ]; then
 
-        #コンフィグのサイクル数読み込み
-        config_cycle=$(cat $(echo $CONFIG | sed s@collapse.cfg@kernel.cfg@g) | grep "timesteps:" | awk '{print $2}')
+                    echo "　 サーバーから読み込むことができませんでした。　"
 
-        next_cycle=0
-
-        start_time=`date +%s`
-
-        while true
-        do
-
-            dis_time=`date +%s`
-
-            kill_subwindow
-
-            cycle=$(cat $SERVER/boot/logs/traffic.log | grep -a "Timestep" | grep -a "took" | awk '{print $5}' | tail -n 1)
-
-            expr $cycle + 1 > /dev/null 2>&1
-
-            [ $? -eq 2 ] && continue
-
-            [ -z $cycle ] && cycle=0
-
-            # temp_lastline=0
-
-
-        
-            if [[ $next_cycle -eq $cycle ]]; then
-
-                # echo -n "**** Time: $cycle / $map_time*************************"
-                # echo -n " "
-                # 表示がかぶることがあるので最後に結合して出力を行う
-                str_cycle="**** Time: ${cycle} / $map_time　*************************"
-                echo -n "$str_cycle"
-            
-            fi
-
-            next_cycle=$(($cycle + 1))
-
-            tail -n $((`wc -l agent.log | awk '{print $1}'` - $lastline)) agent.log
-            temp_lastline=$lastline
-            lastline=$(wc -l agent.log | awk '{print $1}')
-
-                    # 何も出力がなければ上書き
-            if [[ $temp_lastline -eq $lastline ]] && [[ $OVERWRITING = "true" ]] ; then
-                
-                    # echo temp: $temp_lastline
-                    # echo lastline: $lastline
-                    end_time=`date +%s`
-                    run_time=$(($end_time - $start_time))
-                    # echo "run: $run_time"
-                    # 少数計算　scaleは小数点以下の精度
-                    # 経過時間/サイクル
-                    run_time=`echo "scale=5; $run_time / $next_cycle" | bc`
-                    # echo "run: $run_time"
-                    # ループを含む残りサイクル数
-                    rem_cycle=`echo "scale=5; ($map_time - $cycle) + ($map_time * ($LOOP - $loop - 1))" | bc`
-                    # echo "rem: $rem_cycle"
-                    # 予測時間
-                    exp_time=`echo "scale=2; ($rem_cycle * $run_time) / 60" | bc`
-                    str_exp=" | ${exp_time}[m]    "
-                    
-                    echo -e "\r\c"　#カーソルを先頭に戻し、改行しない→上書き
-                    echo -n "$str_cycle $str_exp"
-                    echo -e "\r\c"　#カーソルを先頭に戻し、改行しない→上書き
-                    
                 else
+
+                    for (( ber=1; ber <= $(($1/2)); ber++ )); do
+
+                        echo -e "\e[106m "
+
+                    done
+
+                    for (( ber=1; ber <= $((50-$1/2)); ber++ )); do
+
+                        echo -e "\e[107m "
+
+                    done
+
+                fi
+
+            }
+
+            proportion(){
+
+                if [ ! $1 -lt 0 ]; then
+
+                    echo $1"%"
+
+                fi
+
+            }
+
+            #エラーチェック
+            if [ -f agent.log ]; then
+
+                #errer
+                if [ `grep -c "Failed." agent.log` -eq 1 ]; then
+
+                    echo " エラー"
+                    echo
+                    echo
+                    echo " ＜エラー内容＞"
+                    echo
+                    cat agent.log
+                    echo
+                    echo " コンパイルエラー...開始できませんでした...ｻｰｾﾝ( ・ω ・)ゞ"
                     echo
 
+                    killcommand
+
+                    exit 1
+
+                fi
+
+                #sucsess
+                if [ `grep -c "Done." agent.log` -ge 1 ]; then
+
+                    echo "(*'-')b"
+                    echo
+
+                fi
+
             fi
+                
+            while true
+            do
+
+                kill_subwindow
+
+                #ログ読み込み
+                if [ `grep -c "trap" $SERVER/boot/start.sh` -eq 1 ]; then
+
+                    building_read=-1
+                    road_read=-1
+
+                else
+
+                    building_read=`grep -c "floor:" server.log`
+                    road_read=`grep -c "Road " server.log`
+
+                fi
+
+                ambulanceteam_read=`grep -c "PlatoonAmbulance@" agent.log`
+                firebrigade_read=`grep -c "PlatoonFire@" agent.log`
+                policeforce_read=`grep -c "PlatoonPolice@" agent.log`
+                civilian_read=$((`cat server.log | grep "INFO launcher : Launching instance" | awk '{print $6}' | sed -e 's/[^0-9]//g' | awk '{if (max<$1) max=$1} END {print max}'`-1))
+
+                if [ $civilian_read -lt 0 ]; then
+
+                    civilian_read=0
+
+                fi
+
+                #ロード絶対100%に修正する
+                if [ $(($building_read*100/${maxlist[0]})) -eq 100 ]; then
+
+                    if [ ! $ambulanceteam_read -eq 0 ] || [ ! $firebrigade_read -eq 0 ] || [ ! $policeforce_read -eq 0 ] || [ ! $civilian_read -eq 0 ]; then
+                        
+                        if [ ! $road_max -eq 0 ]; then
+
+                            road_read=${maxlist[1]}
+                        
+                        fi
+                    fi
+
+                fi
+
+                
+
+                #進行度表示
+                echo -e "\e[K\c"
+                echo -e "      Civilian |"`lording_ber $(($civilian_read*100/${maxlist[2]})) 2` "\e[m|" `proportion $(($civilian_read*100/${maxlist[2]}))`
+                echo
+
+                echo -e "\e[K\c"
+                echo -e " AmbulanceTeam |"`lording_ber $(($ambulanceteam_read*100/${maxlist[3]})) 3` "\e[m|" `proportion $(($ambulanceteam_read*100/${maxlist[3]}))`
+                echo
+
+                echo -e "\e[K\c"
+                echo -e "   FireBrigade |"`lording_ber $(($firebrigade_read*100/${maxlist[4]})) 4` "\e[m|" `proportion $(($firebrigade_read*100/${maxlist[4]}))`
+                echo
+
+                echo -e "\e[K\c"
+                echo -e "   PoliceForce |"`lording_ber $(($policeforce_read*100/${maxlist[5]})) 5` "\e[m|" `proportion $(($policeforce_read*100/${maxlist[5]}))`
+                echo
+
+                sync
+
+                if [ `grep -c "Loader is not found." agent.log` -eq 1 ]; then
+
+                    errerbreak
+
+                fi
+
+                if [ ! `grep -c "Done connecting to server" agent.log` -eq 0 ]; then
+
+                    if [ `cat agent.log | grep "Done connecting to server" | awk '{print $6}' | sed -e 's/(//g'` -eq 0 ]; then
+
+                        errerbreak
+
+                    fi
+
+                    if [ `cat agent.log | grep "Done connecting to server" | awk '{print $6}' | sed -e 's/(//g'` -gt 0 ]; then
+
+                        if [[ $START_LAUNCH = "start.sh" ]]; then
+                        
+                            [ ! `grep -c "failed: No more agents" server.log` -eq 1 ] && continue
+
+                        fi
+
+                        echo
+                        echo " ▼ 準備完了。"
+                        echo
+                        echo
+                        echo " ● シミュレーションを開始します！！"
+                        echo "　※ 中断する場合は[C+Ctrl]を入力してください"
+                        echo "  ※ 表示される時間はループを含む終了予測時間です（単位　分）"
+                        echo
+                        echo
+                        echo "＜端末情報＞"
+                        echo
+
+                        break
+
+                    fi
+
+                fi
+
+                echo -e "\e[11;0H" #カーソルを11行目の0列目に戻す
+                
+                sleep 1
+
+            done
+
+            #agent.logの読み込み
+            lastline=`grep -e "FINISH" -n agent.log | sed -e 's/:.*//g' | awk '{if (max<$1) max=$1} END {print max}'`
+
+            #コンフィグのサイクル数読み込み
+            config_cycle=$(cat $(echo $CONFIG | sed s@collapse.cfg@kernel.cfg@g) | grep "timesteps:" | awk '{print $2}')
+
+            next_cycle=0
+
+            start_time=`date +%s`
+
+            while true
+            do
+
+                dis_time=`date +%s`
+
+                kill_subwindow
+
+                cycle=$(cat $SERVER/boot/logs/traffic.log | grep -a "Timestep" | grep -a "took" | awk '{print $5}' | tail -n 1)
+
+                expr $cycle + 1 > /dev/null 2>&1
+
+                [ $? -eq 2 ] && continue
+
+                [ -z $cycle ] && cycle=0
+
+                # temp_lastline=0
 
 
             
+                if [[ $next_cycle -eq $cycle ]]; then
 
-            if [[ ! $LIMIT_CYCLE -eq 0 ]] && [[ $cycle -ge $LIMIT_CYCLE ]] || [[ $cycle -ge $config_cycle ]]; then
+                    # echo -n "**** Time: $cycle / $map_time*************************"
+                    # echo -n " "
+                    # 表示がかぶることがあるので最後に結合して出力を行う
+                    str_cycle="**** Time: ${cycle} / $map_time　*************************"
+                    echo -n "$str_cycle"
+                
+                fi
 
-                echo
-                echo "● シミュレーション終了！！"
-                echo
+                next_cycle=$(($cycle + 1))
 
-                # while [[ -z `echo $score | grep "^-\?[0-9]\+\.\?[0-9]*$"` ]]; do
-                #     score=$(grep -a -C 0 'Score:' $SERVER/boot/logs/kernel.log | tail -n 1 | awk '{print $5}')
-                # done
+                tail -n $((`wc -l agent.log | awk '{print $1}'` - $lastline)) agent.log
+                temp_lastline=$lastline
+                lastline=$(wc -l agent.log | awk '{print $1}')
 
-                sync
-                sleep 1
-                score=$(grep -a -C 0 'Score:' $SERVER/boot/logs/kernel.log | tail -n 1 | awk '{print $5}')
-                loop_cnt=0
-                while true; do
-                    loop_cnt=$((++loop_cnt))
+                        # 何も出力がなければ上書き
+                if [[ $temp_lastline -eq $lastline ]] && [[ $OVERWRITING = "true" ]] ; then
+                    
+                        # echo temp: $temp_lastline
+                        # echo lastline: $lastline
+                        end_time=`date +%s`
+                        run_time=$(($end_time - $start_time))
+                        # echo "run: $run_time"
+                        # 少数計算　scaleは小数点以下の精度
+                        # 経過時間/サイクル
+                        run_time=`echo "scale=5; $run_time / $next_cycle" | bc`
+                        # echo "run: $run_time"
+                        # ループを含む残りサイクル数
+                        rem_cycle=`echo "scale=5; ($map_time - $cycle) + ($map_time * ($LOOP - $loop - 1))" | bc`
+                        # echo "rem: $rem_cycle"
+                        # 予測時間
+                        exp_time=`echo "scale=2; ($rem_cycle * $run_time) / 60" | bc`
+                        str_exp=" | ${exp_time}[m]    "
+                        
+                        echo -e "\r\c"　#カーソルを先頭に戻し、改行しない→上書き
+                        echo -n "$str_cycle $str_exp"
+                        echo -e "\r\c"　#カーソルを先頭に戻し、改行しない→上書き
+                        
+                    else
+                        echo
+
+                fi
+
+
+                
+
+                if [[ ! $LIMIT_CYCLE -eq 0 ]] && [[ $cycle -ge $LIMIT_CYCLE ]] || [[ $cycle -ge $config_cycle ]]; then
+
+                    echo
+                    echo "● シミュレーション終了！！"
+                    echo
+
+                    # while [[ -z `echo $score | grep "^-\?[0-9]\+\.\?[0-9]*$"` ]]; do
+                    #     score=$(grep -a -C 0 'Score:' $SERVER/boot/logs/kernel.log | tail -n 1 | awk '{print $5}')
+                    # done
+
+                    sync
+                    sleep 1
                     score=$(grep -a -C 0 'Score:' $SERVER/boot/logs/kernel.log | tail -n 1 | awk '{print $5}')
-                    # echo "loop_cnt: $loop_cnt"
-                    # echo
-                    if [ ${#score} -gt 10 ] || [ $loop_cnt -gt 10 ]; then
-                        break
-                    fi
-                done
+                    loop_cnt=0
+                    while true; do
+                        loop_cnt=$((++loop_cnt))
+                        score=$(grep -a -C 0 'Score:' $SERVER/boot/logs/kernel.log | tail -n 1 | awk '{print $5}')
+                        # echo "loop_cnt: $loop_cnt"
+                        # echo
+                        if [ ${#score} -gt 10 ] || [ $loop_cnt -gt 10 ]; then
+                            break
+                        fi
+                    done
+                    
+                    scores+=($score)
+
+                    echo "◆ 最終スコアは"$score"でした。"
+                    
+                    [ ! -f score.csv ] && echo 'Date, Score, Server, Agent, Map, Blockade' > score.csv
+                    [ $brockademenu = 'あり' ] && is_blockade_exit=yes
+                    [ $brockademenu = 'なし' ] && is_blockade_exit=no
+
+                    echo "$(date +%Y/%m/%d_%H:%M), $score, $(echo $SERVER | sed "s@/home/$USER/@@g"), $(echo $AGENT | sed "s@/home/$USER/@@g"), $(echo $MAP | sed 's@/map/@@g' | sed 's@/map@@g' | sed 's@/maps@maps@g'), $is_blockade_exit" >> score.csv
+                    echo
+                    echo "スコアは'score.csv'に記録しました。"
+                    echo
+
+                    total_score=$(echo $total_score + $score | bc -l)
+
+                    killcommand
+
+                    break
+
+                fi
+
+                sleep 1
+
                 
-                scores+=($score)
 
-                echo "◆ 最終スコアは"$score"でした。"
-                
-                [ ! -f score.csv ] && echo 'Date, Score, Server, Agent, Map, Blockade' > score.csv
-                [ $brockademenu = 'あり' ] && is_blockade_exit=yes
-                [ $brockademenu = 'なし' ] && is_blockade_exit=no
+            done
 
-                echo "$(date +%Y/%m/%d_%H:%M), $score, $(echo $SERVER | sed "s@/home/$USER/@@g"), $(echo $AGENT | sed "s@/home/$USER/@@g"), $(echo $MAP | sed 's@/map/@@g' | sed 's@/map@@g' | sed 's@/maps@maps@g'), $is_blockade_exit" >> score.csv
-                echo
-                echo "スコアは'score.csv'に記録しました。"
-                echo
-
-                total_score=$(echo $total_score + $score | bc -l)
-
-                killcommand
-
-                break
-
-            fi
+            echo
+            echo "########## $(($loop+1)) / $LOOP Finish ##################"
+            echo
 
             sleep 1
 
-            
-
         done
 
-        echo
-        echo "########## $(($loop+1)) / $LOOP Finish ##################"
-        echo
-
-        sleep 1
-
-    done
+    fi
 
     echo
     echo "●  シミュレーション完全終了！！"
@@ -1301,25 +1367,42 @@ do
 
         currentMapIdx=$(($currentMapIdx+1))
         
+        # すべてのマップを実行したとき
         if [ ${currentMapIdx} -ge ${toalMapCount} ]; then
-            
-            break
 
+            # 未実行のブランチが存在する場合
+            if [[ $canBranchChange = true ]] && [[ $branch_array_current_idx -lt $branch_array_end_idx ]]; then
+
+                echo "branch_array[$branch_array_current_idx]: ${branch_array[$branch_array_current_idx]}"
+                # git checkout ${branch_array[$branch_array_current_idx]}
+                let branch_array_current_idx++
+                currentMapIdx=0
+            
+            else
+
+                # 終了
+                break
+
+            fi
+
+        # 実行していないマップが残っている場合
         else
 
             echo
             echo "########## $(($currentMapIdx+1)) / $toalMapCount Maps ##################"
             echo
             MAP=`echo ${mapdirinfo[$(($currentMapIdx))]} | sed 's/+@+/ /g' | awk '{print $2}'`
-            sleep 10
+            sleep 3
 
         fi
 
+    # 単一マップ実行時
     else
 
         break
 
     fi
+
 done
 
 if [[ ${canShutDown} == "true" ]]; then
