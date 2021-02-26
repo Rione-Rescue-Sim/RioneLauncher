@@ -1,12 +1,10 @@
 #!/bin/bash
 
-USER="taka"
+SERVER="/git/rcrs-server"
 
-SERVER="/home/$USER/git/rcrs-server"
+AGENT="/git/rionerescue"
 
-AGENT="/home/$USER/git/rionerescue"
-
-KILL="/home/$USER/git/rcrs-server/boot/"
+KILL="/git/rcrs-server/boot/"
 
 MAP="maps/gml/test/map"
 
@@ -100,6 +98,13 @@ original_clear(){
 }
 
 ChangeConditions=1
+
+# ユーザディレクトリまでのパスを取得
+ROOT_PATH=$(cd; pwd)
+SERVER=$ROOT_PATH$SERVER
+AGENT=$ROOT_PATH$AGENT
+KILL=$ROOT_PATH$KILL
+
 
 echo
 echo 

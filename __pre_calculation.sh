@@ -1,15 +1,18 @@
 #!/bin/bash
 
-USER="taka"
+AGENT="/git/rionerescue"
 
-AGENT="/home/$USER/git/rionerescue"
-
-KILL="/home/$USER/git/rcrs-server/boot/"
+KILL="/git/rcrs-server/boot/"
 
 # /////////////////////////////////////////////////////////////////////////////////////////////
 # 以下処理部分
 
 LOCATION=$(cd $(dirname $0); pwd)
+
+# ユーザディレクトリまでのパスを取得
+ROOT_PATH=$(cd; pwd)
+AGENT=$ROOT_PATH$AGENT
+KILL=$ROOT_PATH$KILL
 
 
 cd $AGENT

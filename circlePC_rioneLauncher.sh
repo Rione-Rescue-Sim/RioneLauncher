@@ -54,15 +54,17 @@ SHUTDOUW=true
 UPDATE=false
 
 #Google Driveへスコアを保存
-PATH_SCORE="/home/taka/score.csv"
-PATH_GDRIVE="/home/taka/gdrive/remote/"
+PATH_SCORE="/score.csv"
+PATH_GDRIVE="/gdrive/remote/"
 
 #/////////////////////////////////////////////////////////////
 #ここから先は改変しないでくだせぇ動作が止まっても知らないゾ？↓
 
+ROOT_PATH=$(cd; pwd)
+PATH_SCORE=$ROOT_PATH$PATH_SCORE
+PATH_GDRIVE=$ROOT_PATH$PATH_GDRIVE
+
 DEBUG_FLAG=false
-
-
 
 CurrentVer=2.2.2
 os=`uname`
