@@ -57,6 +57,11 @@ UPDATE=false
 PATH_SCORE="/score.csv"
 PATH_GDRIVE="/gdrive/remote/"
 
+# ブランチを切り替えて全マップを回す
+canBranchChange="true"
+branch_array=()
+branch_array=("${branch_array[@]}" "hoge1")
+
 #/////////////////////////////////////////////////////////////
 #ここから先は改変しないでくだせぇ動作が止まっても知らないゾ？↓
 
