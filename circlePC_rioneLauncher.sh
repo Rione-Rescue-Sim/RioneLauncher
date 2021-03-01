@@ -1186,19 +1186,19 @@ do
                 fi
 
                 #進行度表示
-                echo -e "\e[K\c"
+                # echo -e "\e[K\c"
                 echo -e "      Civilian |" `proportion $(($civilian_read*100/${maxlist[2]}))`
                 # echo
 
-                echo -e "\e[K\c"
+                # echo -e "\e[K\c"
                 echo -e " AmbulanceTeam |" `proportion $(($ambulanceteam_read*100/${maxlist[3]}))`
                 # echo
 
-                echo -e "\e[K\c"
+                # echo -e "\e[K\c"
                 echo -e "   FireBrigade |" `proportion $(($firebrigade_read*100/${maxlist[4]}))`
                 # echo
 
-                echo -e "\e[K\c"
+                # echo -e "\e[K\c"
                 echo -e "   PoliceForce |" `proportion $(($policeforce_read*100/${maxlist[5]}))`
                 # echo
 
