@@ -1,9 +1,8 @@
 #!/bin/bash
 #製作者: みぐりー
 
-#ver2.2.2
-#自動アップデートを復活
-# コンパイルの進捗バーが大量に表示される不具合を改善
+#ver2.1.1
+#瓦礫なしを選択して複数の実行を指定した場合、2回目以降に瓦礫ありで実行する不具合を修正。
 
 #使用するサーバーを固定したい場合は、例のようにフルパスを指定してください。
 #固定したくない場合は空白で大丈夫です。
@@ -19,7 +18,7 @@ AGENT="/home/taka/git/rionerescue"
 #使用するマップを固定したい場合は、例のようにmapsディレクトリからのパスを指定してください。
 #固定したくない場合は空白で大丈夫です。
 ##例) MAP="maps/gml/Kobe2013/map"
-MAP="maps/gml/test/map"
+MAP="maps/gml/kobe/map"
 
 #瓦礫の有無。固定する場合はtrue(瓦礫あり)もしくはfalse(瓦礫なし)を指定してください。
 #固定したくない場合は空白で大丈夫です。
@@ -35,7 +34,6 @@ LOOP=1
 #デバッグ用（一応使える）
 LIMIT_CYCLE=0
 
-
 #更新箇所
 #何も出力がない場合、*** Time: ****を上書きする。true(上書き)もしくはfalse(従来通り)
 OVERWRITING=true
@@ -43,18 +41,11 @@ OVERWRITING=true
 #/////////////////////////////////////////////////////////////
 #ここから先は改変しないでくだせぇ動作が止まっても知らないゾ？↓
 
-
-
-
-CurrentVer=2.2.2
+CurrentVer=7.12
 os=`uname`
 LOCATION=$(cd $(dirname $0); pwd)
 phase=0
-master_url="https://raw.githubusercontent.com/taka0628/RioneLauncher/main/rioneLauncher_2.2.1.sh"
-# master_url="https://raw.githubusercontent.com/taka0628/RioneLauncher/develop/rioneLauncher_2.2.1.sh"
-
-echo $0
-echo $LOCATION
+master_url="https://raw.githubusercontent.com/Rione/rionelauncher/master/RioneLauncher.sh"
 
 if [[ ! -f $LOCATION/$(echo "$0") ]]; then
     echo 'スクリプトと同じディレクトリで実行してください。'
@@ -64,7 +55,6 @@ fi
 #[C+ctrl]検知
 trap 'last' {1,2,3,15}
 rm $LOCATION/.signal &>/dev/null
-
 
 killcommand(){
 
@@ -219,9 +209,9 @@ if [[ ! -z $1 ]]; then
     fi
 fi
 
-if [[ $DEBUG_FLAG == 'false' ]]; then
-    update &
-fi
+# if [[ $DEBUG_FLAG == 'false' ]]; then
+#     update &
+# fi
 
 echo
 echo 
@@ -731,10 +721,6 @@ ambulanceteam_max=`echo "${scenariolist[*]}" | grep -c "ambulanceteam"`
 road_max=`grep -c "rcr:road gml:id=" $SERVER/$MAP/map.gml`
 building_max=`grep -c "rcr:building gml:id=" $SERVER/$MAP/map.gml`
 
-# マップの最大サイクル数を取得
-map_time=$(grep -a -C 0 'kernel.timesteps:' $SERVER/$MAP/../config/kernel.cfg | awk '{print $2}')
-
-
 #エラーチェック
 maxlist=( $building_max $road_max $civilian_max $ambulanceteam_max $firebrigade_max $policeforce_max )
 
@@ -893,7 +879,8 @@ for (( loop = 0; loop < $LOOP; loop++ )); do
 
         else
 
-            for (( ber=1; ber <= $(($1/2)); ber++ )); do
+            for (( ber=1; ber <= $(($1/2)); ber++ ));
+            do
 
                 echo -e "\e[106m "
 
@@ -1012,6 +999,8 @@ for (( loop = 0; loop < $LOOP; loop++ )); do
         echo -e "   PoliceForce |"`lording_ber $(($policeforce_read*100/${maxlist[5]})) 5` "\e[m|" `proportion $(($policeforce_read*100/${maxlist[5]}))`
         echo
 
+        echo -e "\e[K\c"
+
 
         if [ `grep -c "Loader is not found." agent.log` -eq 1 ]; then
 
@@ -1041,7 +1030,6 @@ for (( loop = 0; loop < $LOOP; loop++ )); do
                 echo
                 echo " ● シミュレーションを開始します！！"
                 echo "　※ 中断する場合は[C+Ctrl]を入力してください"
-                echo "  ※ 表示される時間はループを含む終了予測時間です（単位　分）"
                 echo
                 echo
                 echo "＜端末情報＞"
@@ -1053,10 +1041,9 @@ for (( loop = 0; loop < $LOOP; loop++ )); do
 
         fi
 
-        # sync
-        echo -e "\e[11;0H" #カーソルを11行目の0列目に戻す
-        
         sleep 1
+
+        echo -e "\e[11;0H" #カーソルを11行目の0列目に戻す
 
     done
 
@@ -1068,12 +1055,8 @@ for (( loop = 0; loop < $LOOP; loop++ )); do
 
     next_cycle=0
 
-    start_time=`date +%s`
-
     while true
     do
-
-        dis_time=`date +%s`
 
         kill_subwindow
 
@@ -1086,54 +1069,32 @@ for (( loop = 0; loop < $LOOP; loop++ )); do
         [ -z $cycle ] && cycle=0
 
         # temp_lastline=0
+        
 
-
-     
         if [[ $next_cycle -eq $cycle ]]; then
 
-            # echo -n "**** Time: $cycle / $map_time*************************"
-            # echo -n " "
-            # 表示がかぶることがあるので最後に結合して出力を行う
-            str_cycle="**** Time: ${cycle} / $map_time　*************************"
-            echo -n "$str_cycle"
+            echo -n '**** Time:' $cycle '*************************'
         
             next_cycle=$(($cycle + 1))
-        fi
 
-        
+        fi
 
         tail -n $((`wc -l agent.log | awk '{print $1}'` - $lastline)) agent.log
         temp_lastline=$lastline
         lastline=$(wc -l agent.log | awk '{print $1}')
 
-                # 何も出力がなければ上書き
+        # 何も出力がなければ上書き
         if [[ $temp_lastline -eq $lastline ]] && [[ $OVERWRITING = "true" ]] ; then
                
+                echo -e "\r\c"　#カーソルを先頭に戻し、改行しない→上書き
                 # echo temp: $temp_lastline
                 # echo lastline: $lastline
-                end_time=`date +%s`
-                run_time=$(($end_time - $start_time))
-                # echo "run: $run_time"
-                # 少数計算　scaleは小数点以下の精度
-                # 経過時間/サイクル
-                run_time=`echo "scale=5; $run_time / $next_cycle" | bc`
-                # echo "run: $run_time"
-                # ループを含む残りサイクル数
-                rem_cycle=`echo "scale=5; ($map_time - $cycle) + ($map_time * ($LOOP - $loop - 1))" | bc`
-                # echo "rem: $rem_cycle"
-                # 予測時間
-                exp_time=`echo "scale=2; ($rem_cycle * $run_time) / 60" | bc`
-                str_exp=" | ${exp_time}[m]    "
-                
-                echo -e "\r\c"　#カーソルを先頭に戻し、改行しない→上書き
-                echo -n "$str_cycle $str_exp"
-                echo -e "\r\c"　#カーソルを先頭に戻し、改行しない→上書き
-                
+
             else
+
                 echo
 
         fi
-
 
         
 
@@ -1156,7 +1117,7 @@ for (( loop = 0; loop < $LOOP; loop++ )); do
                 score=$(grep -a -C 0 'Score:' $SERVER/boot/logs/kernel.log | tail -n 1 | awk '{print $5}')
                 # echo "loop_cnt: $loop_cnt"
                 # echo
-                if [ ${#score} -gt 10 ] || [ $loop_cnt -gt 10 ]; then
+                if [ ${#score} -gt 8 ] || [ $loop_cnt -gt 10 ]; then
                     break
                 fi
             done
@@ -1183,8 +1144,6 @@ for (( loop = 0; loop < $LOOP; loop++ )); do
         fi
 
         sleep 1
-
-        
 
     done
 
