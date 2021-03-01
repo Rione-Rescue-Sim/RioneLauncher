@@ -54,6 +54,9 @@ SHUTDOUW=true
 UPDATE=false
 
 #Google Driveへスコアを保存
+# 選択肢を表示させるならtrue
+canUpload2Gdrive="true"
+# マウント済みのドライブフォルダへのパス
 PATH_SCORE="/score.csv"
 PATH_GDRIVE="/gdrive/remote/"
 
@@ -747,7 +750,6 @@ if [ $SHUTDOUW = "true" ]; then
 
             echo '終了時にシャットダウンを行います'
             canShutDown='true'
-            google-drive-ocamlfuse gdrive
             sleep 2
             break
 
@@ -804,6 +806,39 @@ if [[ $canBranchChange = "true" ]] && [[ $mapnumber -eq 99 ]]; then
         else
 
             echo "$canBranchChange　が入力されました"
+            echo "再度入力してください"
+        
+        fi
+
+    done
+
+fi
+
+#  google driveへのスコア書き出し選択
+if [[ $canUpload2Gdrive = "true" ]]; then
+
+    echo
+    echo "gdriveへスコアを書き出しますか？"
+    echo
+    echo "yes: confirm  |  no: n"
+
+    while true; do
+
+        read canUpload2Gdrive
+
+        if [[ $canUpload2Gdrive = "confirm" ]]; then
+        
+            canUpload2Gdrive="true"
+            break
+
+        elif [[ $canUpload2Gdrive = "n" ]]; then
+
+            canUpload2Gdrive="no"
+            break
+        
+        else
+
+            echo "$canUpload2Gdrive　が入力されました"
             echo "再度入力してください"
         
         fi
@@ -908,7 +943,7 @@ do
     # ///////////////////////////////////////////////////////////////////////////////////////////
     # マップ内ループ
     # レスキューシミュレーションの実行フラグ　デバッグ用
-    canExeSimuration="false"
+    canExeSimuration="true"
     if [[ $canExeSimuration = "true" ]]; then
 
         for (( loop = 0; loop < $LOOP; loop++ )); do
@@ -1144,7 +1179,7 @@ do
 
                 fi
 
-                
+                sleep 1
 
                 #進行度表示
                 echo -e "\e[K\c"
@@ -1299,6 +1334,7 @@ do
 
                     sync
                     sleep 1
+                    cd
                     score=$(grep -a -C 0 'Score:' $SERVER/boot/logs/kernel.log | tail -n 1 | awk '{print $5}')
                     loop_cnt=0
                     while true; do
@@ -1405,6 +1441,15 @@ do
 
 done
 
+if [[ ${canUpload2Gdrive} == "true" ]]; then
+
+    # googledriveへ書き出し
+    cd
+    google-drive-ocamlfuse gdrive
+    cp -f -b --suffix=_$(date +%Y%m%d_%H:%M) $PATH_SCORE $PATH_GDRIVE
+
+fi
+
 if [[ ${canShutDown} == "true" ]]; then
 
     echo "3分後にシャットダウンします"
@@ -1415,7 +1460,6 @@ if [[ ${canShutDown} == "true" ]]; then
     echo "$(date +%Y/%m/%d_%H:%M), shutdown done" >> score.csv
     sync 
     sleep 5
-    cp -f -b --suffix=_$(date +%Y%m%d_%H:%M) $PATH_SCORE $PATH_GDRIVE
 
 fi
 
