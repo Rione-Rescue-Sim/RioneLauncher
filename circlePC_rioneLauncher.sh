@@ -1202,7 +1202,8 @@ do
                 echo -e "   PoliceForce |" `proportion $(($policeforce_read*100/${maxlist[5]}))`
                 # echo
 
-                 #進行度表示
+                sync
+
                 #  色付き進捗バーは非常に重いので廃止。一応残してある
                 # echo -e "\e[K\c"
                 # echo -e "      Civilian |"`lording_ber $(($civilian_read*100/${maxlist[2]})) 2` "\e[m|" `proportion $(($civilian_read*100/${maxlist[2]}))`
