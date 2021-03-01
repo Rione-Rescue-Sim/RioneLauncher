@@ -1098,7 +1098,7 @@ do
 
                 if [ ! $1 -lt 0 ]; then
 
-                    echo $1"%"
+                    echo -n $1"%"
 
                     if [[ $1 -eq 100 ]]; then
                     
@@ -1185,24 +1185,16 @@ do
 
                 fi
 
-                #進行度表示
-                # echo -e "\e[K\c"
-                echo -e "      Civilian |" `proportion $(($civilian_read*100/${maxlist[2]}))`
-                # echo
-
-                # echo -e "\e[K\c"
-                echo -e " AmbulanceTeam |" `proportion $(($ambulanceteam_read*100/${maxlist[3]}))`
-                # echo
-
-                # echo -e "\e[K\c"
-                echo -e "   FireBrigade |" `proportion $(($firebrigade_read*100/${maxlist[4]}))`
-                # echo
-
-                # echo -e "\e[K\c"
-                echo -e "   PoliceForce |" `proportion $(($policeforce_read*100/${maxlist[5]}))`
-                # echo
+                # #進行度表示
+                str_Civilian="      Civilian | `proportion $(($civilian_read*100/${maxlist[2]}))`"
+                str_AmbulanceTeam=" AmbulanceTeam | `proportion $(($ambulanceteam_read*100/${maxlist[3]}))`"
+                str_FireBrigade="   FireBrigade | `proportion $(($firebrigade_read*100/${maxlist[4]}))`"
+                str_PoliceForce="   PoliceForce | `proportion $(($policeforce_read*100/${maxlist[5]}))`"
 
                 sync
+
+                echo -e "$str_Civilian\n$str_AmbulanceTeam\n$str_FireBrigade\n$str_PoliceForce\n"
+
 
                 #  色付き進捗バーは非常に重いので廃止。一応残してある
                 # echo -e "\e[K\c"
