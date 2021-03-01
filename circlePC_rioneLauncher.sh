@@ -1100,6 +1100,12 @@ do
 
                     echo $1"%"
 
+                    if [[ $1 -eq 100 ]]; then
+                    
+                        echo -e "\e[32m" "OK" "\e[m"
+                    
+                    fi
+
                 fi
 
             }
@@ -1179,26 +1185,40 @@ do
 
                 fi
 
-                sleep 1
-
                 #進行度表示
                 echo -e "\e[K\c"
-                echo -e "      Civilian |"`lording_ber $(($civilian_read*100/${maxlist[2]})) 2` "\e[m|" `proportion $(($civilian_read*100/${maxlist[2]}))`
-                echo
+                echo -e "      Civilian |" `proportion $(($civilian_read*100/${maxlist[2]}))`
+                # echo
 
                 echo -e "\e[K\c"
-                echo -e " AmbulanceTeam |"`lording_ber $(($ambulanceteam_read*100/${maxlist[3]})) 3` "\e[m|" `proportion $(($ambulanceteam_read*100/${maxlist[3]}))`
-                echo
+                echo -e " AmbulanceTeam |" `proportion $(($ambulanceteam_read*100/${maxlist[3]}))`
+                # echo
 
                 echo -e "\e[K\c"
-                echo -e "   FireBrigade |"`lording_ber $(($firebrigade_read*100/${maxlist[4]})) 4` "\e[m|" `proportion $(($firebrigade_read*100/${maxlist[4]}))`
-                echo
+                echo -e "   FireBrigade |" `proportion $(($firebrigade_read*100/${maxlist[4]}))`
+                # echo
 
                 echo -e "\e[K\c"
-                echo -e "   PoliceForce |"`lording_ber $(($policeforce_read*100/${maxlist[5]})) 5` "\e[m|" `proportion $(($policeforce_read*100/${maxlist[5]}))`
-                echo
+                echo -e "   PoliceForce |" `proportion $(($policeforce_read*100/${maxlist[5]}))`
+                # echo
 
-                sync
+                 #進行度表示
+                #  色付き進捗バーは非常に重いので廃止。一応残してある
+                # echo -e "\e[K\c"
+                # echo -e "      Civilian |"`lording_ber $(($civilian_read*100/${maxlist[2]})) 2` "\e[m|" `proportion $(($civilian_read*100/${maxlist[2]}))`
+                # echo
+
+                # echo -e "\e[K\c"
+                # echo -e " AmbulanceTeam |"`lording_ber $(($ambulanceteam_read*100/${maxlist[3]})) 3` "\e[m|" `proportion $(($ambulanceteam_read*100/${maxlist[3]}))`
+                # echo
+
+                # echo -e "\e[K\c"
+                # echo -e "   FireBrigade |"`lording_ber $(($firebrigade_read*100/${maxlist[4]})) 4` "\e[m|" `proportion $(($firebrigade_read*100/${maxlist[4]}))`
+                # echo
+
+                # echo -e "\e[K\c"
+                # echo -e "   PoliceForce |"`lording_ber $(($policeforce_read*100/${maxlist[5]})) 5` "\e[m|" `proportion $(($policeforce_read*100/${maxlist[5]}))`
+                # echo
 
                 if [ `grep -c "Loader is not found." agent.log` -eq 1 ]; then
 
