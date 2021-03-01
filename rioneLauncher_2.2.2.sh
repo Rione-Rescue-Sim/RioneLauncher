@@ -1,11 +1,9 @@
 #!/bin/bash
 #製作者: みぐりー
 
-#ver2.3.1
-# 2/16
-#[add]終了後にシャットダウンができるように変更
-#[add]すべてのマップを実行する機能を追加
-#[fix]ループ表示が止まる症状を修正
+#ver2.3.2
+# 3/1
+#[fix]進捗バーが大量に表示される問題を解消
 
 
 #使用するサーバーを固定したい場合は、例のようにフルパスを指定してください。
@@ -1067,6 +1065,7 @@ do
             
 
             #進行度表示
+            echo -e "\e[11;0H" #カーソルを11行目の0列目に戻す
             echo -e "\e[K\c"
             echo -e "      Civilian |"`lording_ber $(($civilian_read*100/${maxlist[2]})) 2` "\e[m|" `proportion $(($civilian_read*100/${maxlist[2]}))`
             echo
@@ -1082,8 +1081,6 @@ do
             echo -e "\e[K\c"
             echo -e "   PoliceForce |"`lording_ber $(($policeforce_read*100/${maxlist[5]})) 5` "\e[m|" `proportion $(($policeforce_read*100/${maxlist[5]}))`
             echo
-
-            sync
 
             if [ `grep -c "Loader is not found." agent.log` -eq 1 ]; then
 
@@ -1125,8 +1122,6 @@ do
 
             fi
 
-            echo -e "\e[11;0H" #カーソルを11行目の0列目に戻す
-            
             sleep 1
 
         done
