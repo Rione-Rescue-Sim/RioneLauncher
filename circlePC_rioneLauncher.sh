@@ -48,7 +48,7 @@ OVERWRITING=true
 
 # シャットダウンの設定
 # true: シャットダウンが選択可能　false: 選択項目を表示しない
-SHUTDOUW=true
+SHUTDOUW=false
 
 # 自動アップデート有効: true, 無効: false
 UPDATE=false
@@ -61,8 +61,8 @@ PATH_SCORE="/score.csv"
 PATH_GDRIVE="/gdrive/remote/"
 
 # ブランチを切り替えて全マップを回す場合
-# canBranchChange="false"
-canBranchChange="true"
+canBranchChange="false"
+# canBranchChange="true"
 branch_array=()
 # ブランチ名を記述
 branch_array=("${branch_array[@]}" "master")
@@ -1100,6 +1100,13 @@ do
 
                     echo -n $1"%"
 
+                    if [[ $1 -eq 100 ]]; then
+
+                        echo -e "\e[32m" "OK\c"
+                        echo -e "\e[m\c"
+
+                    fi
+
                 fi
 
             }
@@ -1179,33 +1186,33 @@ do
 
                 fi
 
-                # #進行度表示
-                # str_Civilian="      Civilian | `proportion $(($civilian_read*100/${maxlist[2]}))`"
-                # str_AmbulanceTeam=" AmbulanceTeam | `proportion $(($ambulanceteam_read*100/${maxlist[3]}))`"
-                # str_FireBrigade="   FireBrigade | `proportion $(($firebrigade_read*100/${maxlist[4]}))`"
-                # str_PoliceForce="   PoliceForce | `proportion $(($policeforce_read*100/${maxlist[5]}))`"
+                #進行度表示
+                str_Civilian="      Civilian | `proportion $(($civilian_read*100/${maxlist[2]}))`"
+                str_AmbulanceTeam=" AmbulanceTeam | `proportion $(($ambulanceteam_read*100/${maxlist[3]}))`"
+                str_FireBrigade="   FireBrigade | `proportion $(($firebrigade_read*100/${maxlist[4]}))`"
+                str_PoliceForce="   PoliceForce | `proportion $(($policeforce_read*100/${maxlist[5]}))`"
 
-                # echo -e "\e[11;0H" #カーソルを11行目の0列目に戻す
-                # echo -e "$str_Civilian\n$str_AmbulanceTeam\n$str_FireBrigade\n$str_PoliceForce\n"
+                echo -e "\e[11;0H" #カーソルを11行目の0列目に戻す
+                echo -e "$str_Civilian\n$str_AmbulanceTeam\n$str_FireBrigade\n$str_PoliceForce\c"
 
 
                 #  色付き進捗バーは非常に重いので廃止。一応残してある
-                echo -e "\e[11;0H" #カーソルを11行目の0列目に戻す
-                echo -e "\e[K\c"
-                echo -e "      Civilian |"`lording_ber $(($civilian_read*100/${maxlist[2]})) 2` "\e[m|" `proportion $(($civilian_read*100/${maxlist[2]}))`
-                echo
+                # echo -e "\e[11;0H" #カーソルを11行目の0列目に戻す
+                # echo -e "\e[K\c"
+                # echo -e "      Civilian |"`lording_ber $(($civilian_read*100/${maxlist[2]})) 2` "\e[m|" `proportion $(($civilian_read*100/${maxlist[2]}))`
+                # echo
 
-                echo -e "\e[K\c"
-                echo -e " AmbulanceTeam |"`lording_ber $(($ambulanceteam_read*100/${maxlist[3]})) 3` "\e[m|" `proportion $(($ambulanceteam_read*100/${maxlist[3]}))`
-                echo
+                # echo -e "\e[K\c"
+                # echo -e " AmbulanceTeam |"`lording_ber $(($ambulanceteam_read*100/${maxlist[3]})) 3` "\e[m|" `proportion $(($ambulanceteam_read*100/${maxlist[3]}))`
+                # echo
 
-                echo -e "\e[K\c"
-                echo -e "   FireBrigade |"`lording_ber $(($firebrigade_read*100/${maxlist[4]})) 4` "\e[m|" `proportion $(($firebrigade_read*100/${maxlist[4]}))`
-                echo
+                # echo -e "\e[K\c"
+                # echo -e "   FireBrigade |"`lording_ber $(($firebrigade_read*100/${maxlist[4]})) 4` "\e[m|" `proportion $(($firebrigade_read*100/${maxlist[4]}))`
+                # echo
 
-                echo -e "\e[K\c"
-                echo -e "   PoliceForce |"`lording_ber $(($policeforce_read*100/${maxlist[5]})) 5` "\e[m|" `proportion $(($policeforce_read*100/${maxlist[5]}))`
-                echo
+                # echo -e "\e[K\c"
+                # echo -e "   PoliceForce |"`lording_ber $(($policeforce_read*100/${maxlist[5]})) 5` "\e[m|" `proportion $(($policeforce_read*100/${maxlist[5]}))`
+                # echo
 
                 if [ `grep -c "Loader is not found." agent.log` -eq 1 ]; then
 
@@ -1236,7 +1243,6 @@ do
                         echo " ● シミュレーションを開始します！！"
                         echo "　※ 中断する場合は[C+Ctrl]を入力してください"
                         echo "  ※ 表示される時間はループを含む終了予測時間です（単位　分）"
-                        echo
                         echo
                         echo "＜端末情報＞"
                         echo
@@ -1297,31 +1303,32 @@ do
                 temp_lastline=$lastline
                 lastline=$(wc -l agent.log | awk '{print $1}')
 
-                        # 何も出力がなければ上書き
+                     # 何も出力がなければ上書き
                 if [[ $temp_lastline -eq $lastline ]] && [[ $OVERWRITING = "true" ]] ; then
                     
-                        # echo temp: $temp_lastline
-                        # echo lastline: $lastline
-                        end_time=`date +%s`
-                        run_time=$(($end_time - $start_time))
-                        # echo "run: $run_time"
-                        # 少数計算　scaleは小数点以下の精度
-                        # 経過時間/サイクル
-                        run_time=`echo "scale=5; $run_time / $next_cycle" | bc`
-                        # echo "run: $run_time"
-                        # ループを含む残りサイクル数
-                        rem_cycle=`echo "scale=5; ($map_time - $cycle) + ($map_time * ($LOOP - $loop - 1))" | bc`
-                        # echo "rem: $rem_cycle"
-                        # 予測時間
-                        exp_time=`echo "scale=2; ($rem_cycle * $run_time) / 60" | bc`
-                        str_exp=" | ${exp_time}[m]    "
+                    # echo temp: $temp_lastline
+                    # echo lastline: $lastline
+                    end_time=`date +%s`
+                    run_time=$(($end_time - $start_time))
+                    # echo "run: $run_time"
+                    # 少数計算　scaleは小数点以下の精度
+                    # 経過時間/サイクル
+                    run_time=`echo "scale=5; $run_time / $next_cycle" | bc`
+                    # echo "run: $run_time"
+                    # ループを含む残りサイクル数
+                    rem_cycle=`echo "scale=5; ($map_time - $cycle) + ($map_time * ($LOOP - $loop - 1))" | bc`
+                    # echo "rem: $rem_cycle"
+                    # 予測時間
+                    exp_time=`echo "scale=2; ($rem_cycle * $run_time) / 60" | bc`
+                    str_exp=" | ${exp_time}[m]    "
+                    
+                    echo -e "\r\c"　#カーソルを先頭に戻し、改行しない→上書き
+                    echo -n "$str_cycle $str_exp"
+                    echo -e "\r\c"　#カーソルを先頭に戻し、改行しない→上書き
                         
-                        echo -e "\r\c"　#カーソルを先頭に戻し、改行しない→上書き
-                        echo -n "$str_cycle $str_exp"
-                        echo -e "\r\c"　#カーソルを先頭に戻し、改行しない→上書き
-                        
-                    else
-                        echo
+                else
+
+                    echo
 
                 fi
 
@@ -1348,7 +1355,7 @@ do
                         score=$(grep -a -C 0 'Score:' $SERVER/boot/logs/kernel.log | tail -n 1 | awk '{print $5}')
                         # echo "loop_cnt: $loop_cnt"
                         # echo
-                        if [ ${#score} -gt 10 ] || [ $loop_cnt -gt 10 ]; then
+                        if [ ${#score} -gt 13 ] || [ $loop_cnt -gt 10 ]; then
                             break
                         fi
                     done
