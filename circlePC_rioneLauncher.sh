@@ -636,6 +636,7 @@ cd $LOCATION
 
 #瓦礫有無選択
 defalutblockade=`cat $CONFIG | grep "collapse.create-road-blockages" | awk '{print $2}'`
+echo "CONFIG: $CONFIG"
 
 if [ ! $brockade = "false" ] && [ ! $brockade = "true" ] || [ $ChangeConditions -eq 1 ]; then
     
@@ -848,98 +849,100 @@ if [[ $canUpload2Gdrive = "true" ]]; then
 fi
 
 # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-#読み込み最大値取得
-#環境変数変更
-IFS=$' \n'
-
-#エージェント
-scenariolist=(`cat $SERVER/$MAP/scenario.xml`)
-
-line_count=1
-before_comment=0
-after_comment=0
-
-for line in ${scenariolist[@]}; do
-
-    if [ `echo $line | grep '<!--'` ]; then
-
-        before_comment=$line_count
-
-    fi
-
-
-    if [ `echo $line | grep '\-->'` ]; then
-
-        after_comment=$line_count
-
-    fi
-
-
-    if [ ! $before_comment = 0 ] && [ ! $after_comment = 0 ]; then
-
-        for ((i=before_comment; i <= $after_comment; i++)); do
-
-            unset scenariolist[$(($i-1))]
-
-        done
-
-        before_comment=0
-        after_comment=0
-
-    fi
-
-    line_count=$(($line_count+1))
-
-done
-
-echo
-IFS=$'\n'
-
-civilian_max=`echo "${scenariolist[*]}" | grep -c "civilian"`
-policeforce_max=`echo "${scenariolist[*]}" | grep -c "policeforce"`
-firebrigade_max=`echo "${scenariolist[*]}" | grep -c "firebrigade"`
-ambulanceteam_max=`echo "${scenariolist[*]}" | grep -c "ambulanceteam"`
-
-road_max=`grep -c "rcr:road gml:id=" $SERVER/$MAP/map.gml`
-building_max=`grep -c "rcr:building gml:id=" $SERVER/$MAP/map.gml`
-
-# マップの最大サイクル数を取得
-map_time=$(grep -a -C 0 'kernel.timesteps:' $SERVER/$MAP/../config/kernel.cfg | awk '{print $2}')
-
-
-#エラーチェック
-maxlist=( $building_max $road_max $civilian_max $ambulanceteam_max $firebrigade_max $policeforce_max )
-
-errerline=0
-
-for l in ${maxlist[@]}; do
-
-    if [ $l -eq 0 ]; then
-
-        maxlist[$errerline]=-1
-
-    fi
-
-    errerline=$((errerline+1))
-
-done
-
-#環境変数変更
-IFS=$' \t\n'
-
-#////////////////////////////////////////////////////////////////////////////////////////////////////
-
 currentMapIdx=0
+
 
 while true
 do
 
+    #読み込み最大値取得
+    #環境変数変更
+    IFS=$' \n'
+
+    #エージェント
+    scenariolist=(`cat $SERVER/$MAP/scenario.xml`)
+
+    line_count=1
+    before_comment=0
+    after_comment=0
+
+    for line in ${scenariolist[@]}; do
+
+        if [ `echo $line | grep '<!--'` ]; then
+
+            before_comment=$line_count
+
+        fi
+
+
+        if [ `echo $line | grep '\-->'` ]; then
+
+            after_comment=$line_count
+
+        fi
+
+
+        if [ ! $before_comment = 0 ] && [ ! $after_comment = 0 ]; then
+
+            for ((i=before_comment; i <= $after_comment; i++)); do
+
+                unset scenariolist[$(($i-1))]
+
+            done
+
+            before_comment=0
+            after_comment=0
+
+        fi
+
+        line_count=$(($line_count+1))
+
+    done
+
+
+
+    #////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    echo
+    IFS=$'\n'
+
+    civilian_max=`echo "${scenariolist[*]}" | grep -c "civilian"`
+    policeforce_max=`echo "${scenariolist[*]}" | grep -c "policeforce"`
+    firebrigade_max=`echo "${scenariolist[*]}" | grep -c "firebrigade"`
+    ambulanceteam_max=`echo "${scenariolist[*]}" | grep -c "ambulanceteam"`
+
+    road_max=`grep -c "rcr:road gml:id=" $SERVER/$MAP/map.gml`
+    building_max=`grep -c "rcr:building gml:id=" $SERVER/$MAP/map.gml`
+
+    # マップの最大サイクル数を取得
+    map_time=$(grep -a -C 0 'kernel.timesteps:' $SERVER/$MAP/../config/kernel.cfg | awk '{print $2}')
+
+
+    #エラーチェック
+    maxlist=( $building_max $road_max $civilian_max $ambulanceteam_max $firebrigade_max $policeforce_max )
+
+    errerline=0
+
+    for l in ${maxlist[@]}; do
+
+        if [ $l -eq 0 ]; then
+
+            maxlist[$errerline]=-1
+
+        fi
+
+        errerline=$((errerline+1))
+
+    done
+
+    #環境変数変更
+    IFS=$' \t\n'
+
     phase=1
     total_score=0
     scores=()
-    
+
     # ///////////////////////////////////////////////////////////////////////////////////////////
     # マップ内ループ
     # レスキューシミュレーションの実行フラグ　デバッグ用
@@ -1042,7 +1045,17 @@ do
             echo "      サーバー ："`echo $SERVER | sed 's@/@ @g' | awk '{print $NF}'`
             echo "  エージェント ："`echo $AGENT | sed 's@/@ @g' | awk '{print $NF}'`
             echo "        マップ ："`echo $MAP | sed 's@/map/@@g' | sed 's@/maps@maps@g'`
-            echo "  　　　　瓦礫 ："$brockademenu
+            echo "  　　　　瓦礫 ：$brockademenu"
+
+            if [[ $doAllMap == "true" ]]; then
+
+                echo "マップサイクル ：$(($loop+1)) / $LOOP loops | $(($currentMapIdx+1)) / $toalMapCount Maps"
+
+            else
+                
+                echo "マップサイクル ：$(($loop+1)) / $LOOP loops"
+
+            fi
 
             #エージェント起動
             cd $AGENT
@@ -1237,14 +1250,6 @@ do
                         fi
 
                         echo
-                        echo " ▼ 準備完了。"
-                        echo
-                        echo
-                        echo " ● シミュレーションを開始します！！"
-                        echo "　※ 中断する場合は[C+Ctrl]を入力してください"
-                        echo "  ※ 表示される時間はループを含む終了予測時間です（単位　分）"
-                        echo
-                        echo "＜端末情報＞"
                         echo
 
                         break
@@ -1291,7 +1296,7 @@ do
 
                     # echo -n "**** Time: $cycle / $map_time*************************"
                     # echo -n " "
-                    # 表示がかぶることがあるので最後に結合して出力を行う
+                    # 表示がかぶることがあるので結合して出力を行う
                     str_cycle="**** Time: ${cycle} / $map_time　*************************"
                     echo -n "$str_cycle"
                 
@@ -1319,8 +1324,18 @@ do
                     rem_cycle=`echo "scale=5; ($map_time - $cycle) + ($map_time * ($LOOP - $loop - 1))" | bc`
                     # echo "rem: $rem_cycle"
                     # 予測時間
-                    exp_time=`echo "scale=2; ($rem_cycle * $run_time) / 60" | bc`
-                    str_exp=" | ${exp_time}[m]    "
+                    exp_time_m=`echo "scale=1; ($rem_cycle * $run_time) / 60" | bc`
+                    if [[ `echo "$exp_time_m > 60" | bc` == 1 ]]; then
+                    
+                        exp_time_h=`echo "$exp_time_m / 60" | bc`
+                        exp_time_m=`echo "$exp_time_m % 60" | bc`
+                        str_exp=" | ${exp_time_h}h ${exp_time_m}m    "
+
+                    else
+
+                        str_exp=" | ${exp_time_m}m    "
+                    
+                    fi
                     
                     echo -e "\r\c"　#カーソルを先頭に戻し、改行しない→上書き
                     echo -n "$str_cycle $str_exp"
@@ -1411,7 +1426,7 @@ do
     echo "スコア平均 : $(echo $total_score / $LOOP | bc -l)"
     echo
 
-# すべてのマップ実行時
+    # すべてのマップ実行時
     if [[ ${doAllMap} == "true" ]]; then
 
         currentMapIdx=$(($currentMapIdx+1))
@@ -1420,7 +1435,7 @@ do
         if [ ${currentMapIdx} -ge ${toalMapCount} ]; then
 
             # 未実行のブランチが存在する場合
-            if [[ $canBranchChange = true ]] && [[ $branch_array_current_idx -lt $branch_array_end_idx ]]; then
+            if [[ $canBranchChange == "true" ]] && [[ $branch_array_current_idx -lt $branch_array_end_idx ]]; then
 
                 echo "branch_array[$branch_array_current_idx]: ${branch_array[$branch_array_current_idx]}"
                 # git checkout ${branch_array[$branch_array_current_idx]}
@@ -1441,6 +1456,34 @@ do
             echo "########## $(($currentMapIdx+1)) / $toalMapCount Maps ##################"
             echo
             MAP=`echo ${mapdirinfo[$(($currentMapIdx))]} | sed 's/+@+/ /g' | awk '{print $2}'`
+
+            cd $SERVER/$MAP 
+            cd ..
+
+            # マップ変更のため再設定
+            #configディレクトリ
+            if [ -e `pwd`/config/collapse.cfg ]; then #configファイルの存在を確認
+
+                CONFIG=`pwd`/config/collapse.cfg
+
+            else
+
+                if [ -e $SERVER/boot/config/collapse.cfg ]; then
+
+                    CONFIG=$SERVER/boot/config/collapse.cfg
+
+                else
+
+                    echo
+                    echo "マップコンフィグが見つかりません…ｷｮﾛ^(･д･｡)(｡･д･)^ｷｮﾛ"
+                    echo
+                    exit 1
+
+                fi
+
+            fi
+
+            cd $LOCATION
             sleep 3
 
         fi
