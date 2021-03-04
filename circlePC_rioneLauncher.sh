@@ -588,6 +588,10 @@ if [ ! -f $SERVER/$MAP/scenario.xml ] || [ $ChangeConditions -eq 1 ] || [ -z $MA
                 doAllMap="true"
                 #アドレス代入
                 MAP=`echo ${mapdirinfo[0]} | sed 's/+@+/ /g' | awk '{print $2}'`
+                # スコア数が膨大になるのでscvに目印を記載
+                cd
+                echo "$(date +%Y/%m/%d_%H:%M), allMap" >> score.csv
+                cd $LOCATION
                 break
 
             else
@@ -846,6 +850,20 @@ if [[ $canUpload2Gdrive = "true" ]]; then
 
     done
 
+    if [[ $canUpload2Gdrive == "true" ]]; then
+
+        # google driveがマウントされていない場合
+        if [[ ! -d $PATH_GDRIVE ]]; then
+            echo "google-drive-ocamlfuse gdrive"
+            google-drive-ocamlfuse gdrive
+        fi
+
+        # 再確認
+        if [[ ! -d $PATH_GDRIVE ]]; then
+            echo "ドライブのマウントに失敗しました"
+            killcommand
+        fi
+    fi
 fi
 
 # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1384,7 +1402,7 @@ do
                     loop_cnt=0
                     while true; do
                         score=$(grep -a -C 0 'Score:' $SERVER/boot/logs/kernel.log | tail -n 1 | awk '{print $5}')
-                        if [[ ${MaxDigitScore} -eq ${#score} ]]; then
+                        if [[ ${MaxDigitScore} -le ${#score} ]]; then
                             break
                         fi
                         if [[ $loop_cnt -gt 10 ]]; then
@@ -1520,10 +1538,12 @@ done
 
 if [[ ${canUpload2Gdrive} == "true" ]]; then
 
+    
+
     # googledriveへ書き出し
     cd
-    google-drive-ocamlfuse gdrive
     cp -f -b --suffix=_$(date +%Y%m%d_%H:%M) $PATH_SCORE $PATH_GDRIVE
+    echo "cp -f -b --suffix=_$(date +%Y%m%d_%H:%M) $PATH_SCORE $PATH_GDRIVE"
 
 fi
 
