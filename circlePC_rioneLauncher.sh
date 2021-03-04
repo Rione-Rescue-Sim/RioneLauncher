@@ -939,9 +939,13 @@ do
     #環境変数変更
     IFS=$' \t\n'
 
+    # /////////////////////////////////////////////////////////////////////////////////////
+    # 各マップ実行時の変数初期化部
+
     phase=1
     total_score=0
     scores=()
+    MaxDigitScore=0 #スコアの桁数の最大値を保存
 
     # ///////////////////////////////////////////////////////////////////////////////////////////
     # マップ内ループ
@@ -1364,15 +1368,32 @@ do
                     sleep 1
                     cd
                     score=$(grep -a -C 0 'Score:' $SERVER/boot/logs/kernel.log | tail -n 1 | awk '{print $5}')
+                    # そのマップにおけるスコアの桁数の最大値が求められていない場合
+                    if [[ $MaxDigitScore -eq 0 ]]; then
+                        # 少なくとも5回は桁数の最大値を更新する
+                        for (( i = 0; i < 5; i++ )); do
+                            score=$(grep -a -C 0 'Score:' $SERVER/boot/logs/kernel.log | tail -n 1 | awk '{print $5}')
+                            if [[ $MaxDigitScore -lt ${#score} ]]; then
+                                MaxDigitScore=${#score}
+                            fi
+                        done 
+                    fi
+
+                    # スコア取得
+                    # 10回を上限に桁数チェックを行いスコア取得を行う
                     loop_cnt=0
                     while true; do
-                        loop_cnt=$((++loop_cnt))
                         score=$(grep -a -C 0 'Score:' $SERVER/boot/logs/kernel.log | tail -n 1 | awk '{print $5}')
-                        # echo "loop_cnt: $loop_cnt"
-                        # echo
-                        if [ ${#score} -gt 13 ] || [ $loop_cnt -gt 10 ]; then
+                        if [[ ${MaxDigitScore} -eq ${#score} ]]; then
                             break
                         fi
+                        if [[ $loop_cnt -gt 10 ]]; then
+                            echo "スコアを正常に取得できませんでした"
+                            echo "MaxDigitScore: $MaxDigitScore"
+                            echo "score: $score"
+                            break
+                        fi
+                        let loop_cnt++
                     done
                     
                     scores+=($score)
