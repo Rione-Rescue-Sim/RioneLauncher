@@ -584,7 +584,6 @@ if [ ! -f $SERVER/$MAP/scenario.xml ] || [ $ChangeConditions -eq 1 ] || [ -z $MA
             
             elif [ $mapnumber -eq 99 ]; then
 
-                echo "testを除くマップで実行します"
                 doAllMap="true"
                 #アドレス代入
                 MAP=`echo ${mapdirinfo[0]} | sed 's/+@+/ /g' | awk '{print $2}'`
