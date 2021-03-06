@@ -55,7 +55,7 @@ UPDATE=false
 
 #Google Driveへスコアを保存
 # 選択肢を表示させるならtrue
-canUpload2Gdrive="true"
+canUpload2Gdrive="false"
 # マウント済みのドライブフォルダへのパス
 PATH_SCORE="/score.csv"
 PATH_GDRIVE="/gdrive/remote/"
@@ -85,6 +85,14 @@ LOCATION=$(cd $(dirname $0); pwd)
 phase=0
 master_url="https://raw.githubusercontent.com/taka0628/RioneLauncher/main/rioneLauncher_2.2.2.sh"
 # master_url="https://raw.githubusercontent.com/taka0628/RioneLauncher/main/test.sh"
+
+# ブランチ取得
+temp_path=$(pwd)
+echo "temp_path: $temp_path"
+cd $AGENT
+current_branch="$(git status | grep 'ブランチ' | awk '{print $2}')"
+cd $temp_path
+temp_path=0
 
 echo $0
 echo $LOCATION
@@ -1067,6 +1075,7 @@ do
             echo "  エージェント ："`echo $AGENT | sed 's@/@ @g' | awk '{print $NF}'`
             echo "        マップ ："`echo $MAP | sed 's@/map/@@g' | sed 's@/maps@maps@g'`
             echo "  　　　　瓦礫 ：$brockademenu"
+            echo "  　　ブランチ ：$current_branch"
 
             if [[ $doAllMap == "true" ]]; then
 
@@ -1226,7 +1235,7 @@ do
                 str_FireBrigade="   FireBrigade | `proportion $(($firebrigade_read*100/${maxlist[4]}))`"
                 str_PoliceForce="   PoliceForce | `proportion $(($policeforce_read*100/${maxlist[5]}))`"
 
-                echo -e "\e[11;0H" #カーソルを11行目の0列目に戻す
+                echo -e "\e[12;0H" #カーソルを12行目の0列目に戻す
                 echo -e "$str_Civilian\n$str_AmbulanceTeam\n$str_FireBrigade\n$str_PoliceForce\c"
 
 
@@ -1374,15 +1383,17 @@ do
                 if [[ ! $LIMIT_CYCLE -eq 0 ]] && [[ $cycle -ge $LIMIT_CYCLE ]] || [[ $cycle -ge $config_cycle ]]; then
 
                     echo
+                    echo
                     echo "● シミュレーション終了！！"
                     echo
+                    echo -e "スコア取得中\r\c"
 
                     # while [[ -z `echo $score | grep "^-\?[0-9]\+\.\?[0-9]*$"` ]]; do
                     #     score=$(grep -a -C 0 'Score:' $SERVER/boot/logs/kernel.log | tail -n 1 | awk '{print $5}')
                     # done
 
+                    sleep 2
                     sync
-                    sleep 1
                     cd
                     score=$(grep -a -C 0 'Score:' $SERVER/boot/logs/kernel.log | tail -n 1 | awk '{print $5}')
                     # そのマップにおけるスコアの桁数の最大値が求められていない場合
@@ -1393,29 +1404,46 @@ do
                             if [[ $MaxDigitScore -lt ${#score} ]]; then
                                 MaxDigitScore=${#score}
                             fi
+                            sleep 1
                         done 
                     fi
 
                     # スコア取得
                     # 10回を上限に桁数チェックを行いスコア取得を行う
                     loop_cnt=0
+                    temp_score=0
                     while true; do
                         score=$(grep -a -C 0 'Score:' $SERVER/boot/logs/kernel.log | tail -n 1 | awk '{print $5}')
+                        # socreの桁数が事前に取得した検査用の精度を満たす場合
                         if [[ ${MaxDigitScore} -le ${#score} ]]; then
+                            # 取得したスコアの精度が検査用の精度以上のとき
+                            if [[ ${MaxDigitScore} -lt ${#score} ]]; then
+                                MaxDigitScore=${#score}
+                            fi
                             break
+                        else
+                            # スコアが一定精度以下&&一時保存した精度以上の場合は一時保存のスコアを更新
+                            # 精度を満たさない場合でもできるだけ高い精度を出力したい
+                            if [[ ${#temp_score} -lt ${#score} ]]; then
+                                temp_score=$score
+                            fi
                         fi
+                        # 規定回数スコアを取得しても規定の精度を満たさない場合
+                        # 一時保存していた最大精度のスコアを出力
                         if [[ $loop_cnt -gt 10 ]]; then
-                            echo "スコアを正常に取得できませんでした"
+                            echo -e "スコアを正常に取得できませんでした"
                             echo "MaxDigitScore: $MaxDigitScore"
-                            echo "score: $score"
+                            echo "score: $temp_score"
+                            score=$temp_score
                             break
                         fi
                         let loop_cnt++
+                        sleep 1
                     done
                     
                     scores+=($score)
 
-                    echo "◆ 最終スコアは"$score"でした。"
+                    echo -e "◆ 最終スコアは"$score"でした。"
                     
                     [ ! -f score.csv ] && echo 'Date, Score, Server, Agent, Map, Blockade' > score.csv
                     [ $brockademenu = 'あり' ] && is_blockade_exit=yes
