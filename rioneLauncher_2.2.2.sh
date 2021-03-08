@@ -47,7 +47,7 @@ OVERWRITING=true
 SHUTDOUW=false
 
 # 自動アップデート有効: true, 無効: false
-UPDATE=false
+UPDATE=true
 
 #/////////////////////////////////////////////////////////////
 #ここから先は改変しないでくだせぇ動作が止まっても知らないゾ？↓
