@@ -1,15 +1,17 @@
 #!/bin/bash
-#製作者: みぐりー
+#製作者: 中山
 
 # 部室PC用Launcher
-# shutdown選択時にrescueのgoogle driveにscore.csvを送信する
+# rescueのgoogle driveにscore.csvを送信可能
 # shutdownが行われた場合はその旨をscore.csvに記述する
 
-#ver2.3.1
-# 2/16
-#[add]終了後にシャットダウンができるように変更
-#[add]すべてのマップを実行する機能を追加
-#[fix]ループ表示が止まる症状を修正
+# メモ
+# 全マップを各20回実行すると36時間以上かかる
+
+# 3/8
+# [add]現在のブランチ名の表示
+# [fix]スコア取得の動作を改善
+# [fix]終了予測時間の計算をサイクルの更新があった場合のみ行うように変更
 
 
 #使用するサーバーを固定したい場合は、例のようにフルパスを指定してください。
@@ -48,21 +50,23 @@ OVERWRITING=true
 
 # シャットダウンの設定
 # true: シャットダウンが選択可能　false: 選択項目を表示しない
-SHUTDOUW=true
+SHUTDOUW=false
 
 # 自動アップデート有効: true, 無効: false
 UPDATE=false
 
 #Google Driveへスコアを保存
 # 選択肢を表示させるならtrue
-canUpload2Gdrive="true"
+canUpload2Gdrive="false"
 # マウント済みのドライブフォルダへのパス
 PATH_SCORE="/score.csv"
 PATH_GDRIVE="/gdrive/remote/"
 
 # ブランチを切り替えて全マップを回す場合
-# canBranchChange="false"
-canBranchChange="true"
+# ブランチの切り替えを行って実行すると相当の時間がかかると予想できるので非推奨
+# 例）全マップ20回 + 4ブランチ = 36時間 * 4 = 144時間 = 6日
+canBranchChange="false"
+# canBranchChange="true"
 branch_array=()
 # ブランチ名を記述
 branch_array=("${branch_array[@]}" "master")
@@ -85,6 +89,8 @@ LOCATION=$(cd $(dirname $0); pwd)
 phase=0
 master_url="https://raw.githubusercontent.com/taka0628/RioneLauncher/main/rioneLauncher_2.2.2.sh"
 # master_url="https://raw.githubusercontent.com/taka0628/RioneLauncher/main/test.sh"
+
+
 
 echo $0
 echo $LOCATION
@@ -584,10 +590,13 @@ if [ ! -f $SERVER/$MAP/scenario.xml ] || [ $ChangeConditions -eq 1 ] || [ -z $MA
             
             elif [ $mapnumber -eq 99 ]; then
 
-                echo "testを除くマップで実行します"
                 doAllMap="true"
                 #アドレス代入
                 MAP=`echo ${mapdirinfo[0]} | sed 's/+@+/ /g' | awk '{print $2}'`
+                # スコア数が膨大になるのでscvに目印を記載
+                cd
+                echo "$(date +%Y/%m/%d_%H:%M), allMap" >> score.csv
+                cd $LOCATION
                 break
 
             else
@@ -636,6 +645,7 @@ cd $LOCATION
 
 #瓦礫有無選択
 defalutblockade=`cat $CONFIG | grep "collapse.create-road-blockages" | awk '{print $2}'`
+echo "CONFIG: $CONFIG"
 
 if [ ! $brockade = "false" ] && [ ! $brockade = "true" ] || [ $ChangeConditions -eq 1 ]; then
     
@@ -814,6 +824,14 @@ if [[ $canBranchChange = "true" ]] && [[ $mapnumber -eq 99 ]]; then
 
 fi
 
+# ブランチ取得
+temp_path=$(pwd)
+echo "temp_path: $temp_path"
+cd $AGENT
+current_branch="$(git status | grep 'ブランチ' | awk '{print $2}')"
+cd $temp_path
+temp_path=0
+
 #  google driveへのスコア書き出し選択
 if [[ $canUpload2Gdrive = "true" ]]; then
 
@@ -845,101 +863,121 @@ if [[ $canUpload2Gdrive = "true" ]]; then
 
     done
 
+    if [[ $canUpload2Gdrive == "true" ]]; then
+
+        # google driveがマウントされていない場合
+        if [[ ! -d $PATH_GDRIVE ]]; then
+            echo "google-drive-ocamlfuse gdrive"
+            google-drive-ocamlfuse gdrive
+        fi
+
+        # 再確認
+        if [[ ! -d $PATH_GDRIVE ]]; then
+            echo "ドライブのマウントに失敗しました"
+            killcommand
+        fi
+    fi
 fi
 
 # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-#読み込み最大値取得
-#環境変数変更
-IFS=$' \n'
-
-#エージェント
-scenariolist=(`cat $SERVER/$MAP/scenario.xml`)
-
-line_count=1
-before_comment=0
-after_comment=0
-
-for line in ${scenariolist[@]}; do
-
-    if [ `echo $line | grep '<!--'` ]; then
-
-        before_comment=$line_count
-
-    fi
-
-
-    if [ `echo $line | grep '\-->'` ]; then
-
-        after_comment=$line_count
-
-    fi
-
-
-    if [ ! $before_comment = 0 ] && [ ! $after_comment = 0 ]; then
-
-        for ((i=before_comment; i <= $after_comment; i++)); do
-
-            unset scenariolist[$(($i-1))]
-
-        done
-
-        before_comment=0
-        after_comment=0
-
-    fi
-
-    line_count=$(($line_count+1))
-
-done
-
-echo
-IFS=$'\n'
-
-civilian_max=`echo "${scenariolist[*]}" | grep -c "civilian"`
-policeforce_max=`echo "${scenariolist[*]}" | grep -c "policeforce"`
-firebrigade_max=`echo "${scenariolist[*]}" | grep -c "firebrigade"`
-ambulanceteam_max=`echo "${scenariolist[*]}" | grep -c "ambulanceteam"`
-
-road_max=`grep -c "rcr:road gml:id=" $SERVER/$MAP/map.gml`
-building_max=`grep -c "rcr:building gml:id=" $SERVER/$MAP/map.gml`
-
-# マップの最大サイクル数を取得
-map_time=$(grep -a -C 0 'kernel.timesteps:' $SERVER/$MAP/../config/kernel.cfg | awk '{print $2}')
-
-
-#エラーチェック
-maxlist=( $building_max $road_max $civilian_max $ambulanceteam_max $firebrigade_max $policeforce_max )
-
-errerline=0
-
-for l in ${maxlist[@]}; do
-
-    if [ $l -eq 0 ]; then
-
-        maxlist[$errerline]=-1
-
-    fi
-
-    errerline=$((errerline+1))
-
-done
-
-#環境変数変更
-IFS=$' \t\n'
-
-#////////////////////////////////////////////////////////////////////////////////////////////////////
-
 currentMapIdx=0
+
 
 while true
 do
 
+    #読み込み最大値取得
+    #環境変数変更
+    IFS=$' \n'
+
+    #エージェント
+    scenariolist=(`cat $SERVER/$MAP/scenario.xml`)
+
+    line_count=1
+    before_comment=0
+    after_comment=0
+
+    for line in ${scenariolist[@]}; do
+
+        if [ `echo $line | grep '<!--'` ]; then
+
+            before_comment=$line_count
+
+        fi
+
+
+        if [ `echo $line | grep '\-->'` ]; then
+
+            after_comment=$line_count
+
+        fi
+
+
+        if [ ! $before_comment = 0 ] && [ ! $after_comment = 0 ]; then
+
+            for ((i=before_comment; i <= $after_comment; i++)); do
+
+                unset scenariolist[$(($i-1))]
+
+            done
+
+            before_comment=0
+            after_comment=0
+
+        fi
+
+        line_count=$(($line_count+1))
+
+    done
+
+
+
+    #////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    echo
+    IFS=$'\n'
+
+    civilian_max=`echo "${scenariolist[*]}" | grep -c "civilian"`
+    policeforce_max=`echo "${scenariolist[*]}" | grep -c "policeforce"`
+    firebrigade_max=`echo "${scenariolist[*]}" | grep -c "firebrigade"`
+    ambulanceteam_max=`echo "${scenariolist[*]}" | grep -c "ambulanceteam"`
+
+    road_max=`grep -c "rcr:road gml:id=" $SERVER/$MAP/map.gml`
+    building_max=`grep -c "rcr:building gml:id=" $SERVER/$MAP/map.gml`
+
+    # マップの最大サイクル数を取得
+    map_time=$(grep -a -C 0 'kernel.timesteps:' $SERVER/$MAP/../config/kernel.cfg | awk '{print $2}')
+
+
+    #エラーチェック
+    maxlist=( $building_max $road_max $civilian_max $ambulanceteam_max $firebrigade_max $policeforce_max )
+
+    errerline=0
+
+    for l in ${maxlist[@]}; do
+
+        if [ $l -eq 0 ]; then
+
+            maxlist[$errerline]=-1
+
+        fi
+
+        errerline=$((errerline+1))
+
+    done
+
+    #環境変数変更
+    IFS=$' \t\n'
+
+    # /////////////////////////////////////////////////////////////////////////////////////
+    # 各マップ実行時の変数初期化部
+
     phase=1
     total_score=0
     scores=()
-    
+    MaxDigitScore=0 #スコアの桁数の最大値を保存
+
     # ///////////////////////////////////////////////////////////////////////////////////////////
     # マップ内ループ
     # レスキューシミュレーションの実行フラグ　デバッグ用
@@ -1042,7 +1080,18 @@ do
             echo "      サーバー ："`echo $SERVER | sed 's@/@ @g' | awk '{print $NF}'`
             echo "  エージェント ："`echo $AGENT | sed 's@/@ @g' | awk '{print $NF}'`
             echo "        マップ ："`echo $MAP | sed 's@/map/@@g' | sed 's@/maps@maps@g'`
-            echo "  　　　　瓦礫 ："$brockademenu
+            echo "  　　　　瓦礫 ：$brockademenu"
+            echo "  　　ブランチ ：$current_branch"
+
+            if [[ $doAllMap == "true" ]]; then
+
+                echo "マップサイクル ：$(($loop+1)) / $LOOP loops | $(($currentMapIdx+1)) / $toalMapCount Maps"
+
+            else
+                
+                echo "マップサイクル ：$(($loop+1)) / $LOOP loops"
+
+            fi
 
             #エージェント起動
             cd $AGENT
@@ -1099,6 +1148,13 @@ do
                 if [ ! $1 -lt 0 ]; then
 
                     echo -n $1"%"
+
+                    if [[ $1 -eq 100 ]]; then
+
+                        echo -e "\e[32m" "OK\c"
+                        echo -e "\e[m\c"
+
+                    fi
 
                 fi
 
@@ -1179,33 +1235,33 @@ do
 
                 fi
 
-                # #進行度表示
-                # str_Civilian="      Civilian | `proportion $(($civilian_read*100/${maxlist[2]}))`"
-                # str_AmbulanceTeam=" AmbulanceTeam | `proportion $(($ambulanceteam_read*100/${maxlist[3]}))`"
-                # str_FireBrigade="   FireBrigade | `proportion $(($firebrigade_read*100/${maxlist[4]}))`"
-                # str_PoliceForce="   PoliceForce | `proportion $(($policeforce_read*100/${maxlist[5]}))`"
+                #進行度表示
+                str_Civilian="      Civilian | `proportion $(($civilian_read*100/${maxlist[2]}))`"
+                str_AmbulanceTeam=" AmbulanceTeam | `proportion $(($ambulanceteam_read*100/${maxlist[3]}))`"
+                str_FireBrigade="   FireBrigade | `proportion $(($firebrigade_read*100/${maxlist[4]}))`"
+                str_PoliceForce="   PoliceForce | `proportion $(($policeforce_read*100/${maxlist[5]}))`"
 
-                # echo -e "\e[11;0H" #カーソルを11行目の0列目に戻す
-                # echo -e "$str_Civilian\n$str_AmbulanceTeam\n$str_FireBrigade\n$str_PoliceForce\n"
+                echo -e "\e[12;0H" #カーソルを12行目の0列目に戻す
+                echo -e "$str_Civilian\n$str_AmbulanceTeam\n$str_FireBrigade\n$str_PoliceForce\c"
 
 
                 #  色付き進捗バーは非常に重いので廃止。一応残してある
-                echo -e "\e[11;0H" #カーソルを11行目の0列目に戻す
-                echo -e "\e[K\c"
-                echo -e "      Civilian |"`lording_ber $(($civilian_read*100/${maxlist[2]})) 2` "\e[m|" `proportion $(($civilian_read*100/${maxlist[2]}))`
-                echo
+                # echo -e "\e[11;0H" #カーソルを11行目の0列目に戻す
+                # echo -e "\e[K\c"
+                # echo -e "      Civilian |"`lording_ber $(($civilian_read*100/${maxlist[2]})) 2` "\e[m|" `proportion $(($civilian_read*100/${maxlist[2]}))`
+                # echo
 
-                echo -e "\e[K\c"
-                echo -e " AmbulanceTeam |"`lording_ber $(($ambulanceteam_read*100/${maxlist[3]})) 3` "\e[m|" `proportion $(($ambulanceteam_read*100/${maxlist[3]}))`
-                echo
+                # echo -e "\e[K\c"
+                # echo -e " AmbulanceTeam |"`lording_ber $(($ambulanceteam_read*100/${maxlist[3]})) 3` "\e[m|" `proportion $(($ambulanceteam_read*100/${maxlist[3]}))`
+                # echo
 
-                echo -e "\e[K\c"
-                echo -e "   FireBrigade |"`lording_ber $(($firebrigade_read*100/${maxlist[4]})) 4` "\e[m|" `proportion $(($firebrigade_read*100/${maxlist[4]}))`
-                echo
+                # echo -e "\e[K\c"
+                # echo -e "   FireBrigade |"`lording_ber $(($firebrigade_read*100/${maxlist[4]})) 4` "\e[m|" `proportion $(($firebrigade_read*100/${maxlist[4]}))`
+                # echo
 
-                echo -e "\e[K\c"
-                echo -e "   PoliceForce |"`lording_ber $(($policeforce_read*100/${maxlist[5]})) 5` "\e[m|" `proportion $(($policeforce_read*100/${maxlist[5]}))`
-                echo
+                # echo -e "\e[K\c"
+                # echo -e "   PoliceForce |"`lording_ber $(($policeforce_read*100/${maxlist[5]})) 5` "\e[m|" `proportion $(($policeforce_read*100/${maxlist[5]}))`
+                # echo
 
                 if [ `grep -c "Loader is not found." agent.log` -eq 1 ]; then
 
@@ -1230,15 +1286,6 @@ do
                         fi
 
                         echo
-                        echo " ▼ 準備完了。"
-                        echo
-                        echo
-                        echo " ● シミュレーションを開始します！！"
-                        echo "　※ 中断する場合は[C+Ctrl]を入力してください"
-                        echo "  ※ 表示される時間はループを含む終了予測時間です（単位　分）"
-                        echo
-                        echo
-                        echo "＜端末情報＞"
                         echo
 
                         break
@@ -1258,7 +1305,8 @@ do
             #コンフィグのサイクル数読み込み
             config_cycle=$(cat $(echo $CONFIG | sed s@collapse.cfg@kernel.cfg@g) | grep "timesteps:" | awk '{print $2}')
 
-            next_cycle=0
+            # ゼロで初期化するとゼロ除算が発生する
+            next_cycle=1
 
             start_time=`date +%s`
 
@@ -1280,25 +1328,26 @@ do
                 # temp_lastline=0
 
 
-            
-                if [[ $next_cycle -eq $cycle ]]; then
+                # サイクル数が更新されたか？           ↓サイクル数が0でも表示を行う例外処理
+                if [[ $next_cycle -eq $cycle ]] || [[ $next_cycle -eq 1 ]]; then
 
                     # echo -n "**** Time: $cycle / $map_time*************************"
                     # echo -n " "
-                    # 表示がかぶることがあるので最後に結合して出力を行う
+                    # 表示がかぶることがあるので結合して出力を行う
                     str_cycle="**** Time: ${cycle} / $map_time　*************************"
                     echo -n "$str_cycle"
                 
                 fi
 
-                next_cycle=$(($cycle + 1))
 
                 tail -n $((`wc -l agent.log | awk '{print $1}'` - $lastline)) agent.log
                 temp_lastline=$lastline
                 lastline=$(wc -l agent.log | awk '{print $1}')
 
-                        # 何も出力がなければ上書き
+                # プログラムからの標準出力がない場合は表示の上書きを行う
                 if [[ $temp_lastline -eq $lastline ]] && [[ $OVERWRITING = "true" ]] ; then
+                    # サイクルの更新があった場合
+                    if [[ $next_cycle -eq $cycle ]]; then
                     
                         # echo temp: $temp_lastline
                         # echo lastline: $lastline
@@ -1313,49 +1362,106 @@ do
                         rem_cycle=`echo "scale=5; ($map_time - $cycle) + ($map_time * ($LOOP - $loop - 1))" | bc`
                         # echo "rem: $rem_cycle"
                         # 予測時間
-                        exp_time=`echo "scale=2; ($rem_cycle * $run_time) / 60" | bc`
-                        str_exp=" | ${exp_time}[m]    "
+                        exp_time_m=`echo "scale=1; ($rem_cycle * $run_time) / 60" | bc`
+                        if [[ `echo "$exp_time_m > 60" | bc` == 1 ]]; then
                         
+                            exp_time_h=`echo "$exp_time_m / 60" | bc`
+                            exp_time_m=`echo "$exp_time_m % 60" | bc`
+                            str_exp=" | ${exp_time_h}h ${exp_time_m}m    "
+
+                        else
+
+                            str_exp=" | ${exp_time_m}m    "
+                    
+                        fi
+                    
                         echo -e "\r\c"　#カーソルを先頭に戻し、改行しない→上書き
-                        echo -n "$str_cycle $str_exp"
-                        echo -e "\r\c"　#カーソルを先頭に戻し、改行しない→上書き
+                        echo -e "$str_cycle $str_exp\r\c"
                         
+
+                    # サイクルの更新がなかった場合
                     else
-                        echo
+
+                        echo -e "\r\c"　#カーソルを先頭に戻し、改行しない→上書き
+                        echo -e "$str_cycle $str_exp\r\c"
+                        
+                    fi
+                    
+                # プログラムからの標準出力があった場合は改行し出力を表示
+                elif [[ ! $temp_lastline -eq $lastline ]]; then
+                
+                    echo
 
                 fi
 
+                # 次のサイクル数を計算しておくことでサイクルの更新を検知できる
+                next_cycle=$(($cycle + 1))
 
-                
 
                 if [[ ! $LIMIT_CYCLE -eq 0 ]] && [[ $cycle -ge $LIMIT_CYCLE ]] || [[ $cycle -ge $config_cycle ]]; then
 
                     echo
+                    echo
                     echo "● シミュレーション終了！！"
                     echo
+                    echo -e "スコア取得中\r\c"
 
                     # while [[ -z `echo $score | grep "^-\?[0-9]\+\.\?[0-9]*$"` ]]; do
                     #     score=$(grep -a -C 0 'Score:' $SERVER/boot/logs/kernel.log | tail -n 1 | awk '{print $5}')
                     # done
 
+                    sleep 2
                     sync
-                    sleep 1
                     cd
                     score=$(grep -a -C 0 'Score:' $SERVER/boot/logs/kernel.log | tail -n 1 | awk '{print $5}')
+                    # そのマップにおけるスコアの桁数の最大値が求められていない場合
+                    if [[ $MaxDigitScore -eq 0 ]]; then
+                        # 少なくとも5回は桁数の最大値を更新する
+                        for (( i = 0; i < 5; i++ )); do
+                            score=$(grep -a -C 0 'Score:' $SERVER/boot/logs/kernel.log | tail -n 1 | awk '{print $5}')
+                            if [[ $MaxDigitScore -lt ${#score} ]]; then
+                                MaxDigitScore=${#score}
+                            fi
+                            sleep 1
+                        done 
+                    fi
+
+                    # スコア取得
+                    # 10回を上限に桁数チェックを行いスコア取得を行う
                     loop_cnt=0
+                    temp_score=0
                     while true; do
-                        loop_cnt=$((++loop_cnt))
                         score=$(grep -a -C 0 'Score:' $SERVER/boot/logs/kernel.log | tail -n 1 | awk '{print $5}')
-                        # echo "loop_cnt: $loop_cnt"
-                        # echo
-                        if [ ${#score} -gt 10 ] || [ $loop_cnt -gt 10 ]; then
+                        # socreの桁数が事前に取得した検査用の精度を満たす場合
+                        if [[ ${MaxDigitScore} -le ${#score} ]]; then
+                            # 取得したスコアの精度が検査用の精度以上のとき
+                            if [[ ${MaxDigitScore} -lt ${#score} ]]; then
+                                MaxDigitScore=${#score}
+                            fi
+                            break
+                        else
+                            # スコアが一定精度以下&&一時保存した精度以上の場合は一時保存のスコアを更新
+                            # 精度を満たさない場合でもできるだけ高い精度を出力したい
+                            if [[ ${#temp_score} -lt ${#score} ]]; then
+                                temp_score=$score
+                            fi
+                        fi
+                        # 規定回数スコアを取得しても規定の精度を満たさない場合
+                        # 一時保存していた最大精度のスコアを出力
+                        if [[ $loop_cnt -gt 10 ]]; then
+                            echo -e "スコアを正常に取得できませんでした"
+                            echo "MaxDigitScore: $MaxDigitScore"
+                            echo "score: $temp_score"
+                            score=$temp_score
                             break
                         fi
+                        let loop_cnt++
+                        sleep 1
                     done
                     
                     scores+=($score)
 
-                    echo "◆ 最終スコアは"$score"でした。"
+                    echo -e "◆ 最終スコアは"$score"でした。"
                     
                     [ ! -f score.csv ] && echo 'Date, Score, Server, Agent, Map, Blockade' > score.csv
                     [ $brockademenu = 'あり' ] && is_blockade_exit=yes
@@ -1375,8 +1481,6 @@ do
                 fi
 
                 sleep 1
-
-                
 
             done
 
@@ -1404,7 +1508,7 @@ do
     echo "スコア平均 : $(echo $total_score / $LOOP | bc -l)"
     echo
 
-# すべてのマップ実行時
+    # すべてのマップ実行時
     if [[ ${doAllMap} == "true" ]]; then
 
         currentMapIdx=$(($currentMapIdx+1))
@@ -1413,7 +1517,7 @@ do
         if [ ${currentMapIdx} -ge ${toalMapCount} ]; then
 
             # 未実行のブランチが存在する場合
-            if [[ $canBranchChange = true ]] && [[ $branch_array_current_idx -lt $branch_array_end_idx ]]; then
+            if [[ $canBranchChange == "true" ]] && [[ $branch_array_current_idx -lt $branch_array_end_idx ]]; then
 
                 echo "branch_array[$branch_array_current_idx]: ${branch_array[$branch_array_current_idx]}"
                 # git checkout ${branch_array[$branch_array_current_idx]}
@@ -1434,6 +1538,34 @@ do
             echo "########## $(($currentMapIdx+1)) / $toalMapCount Maps ##################"
             echo
             MAP=`echo ${mapdirinfo[$(($currentMapIdx))]} | sed 's/+@+/ /g' | awk '{print $2}'`
+
+            cd $SERVER/$MAP 
+            cd ..
+
+            # マップ変更のため再設定
+            #configディレクトリ
+            if [ -e `pwd`/config/collapse.cfg ]; then #configファイルの存在を確認
+
+                CONFIG=`pwd`/config/collapse.cfg
+
+            else
+
+                if [ -e $SERVER/boot/config/collapse.cfg ]; then
+
+                    CONFIG=$SERVER/boot/config/collapse.cfg
+
+                else
+
+                    echo
+                    echo "マップコンフィグが見つかりません…ｷｮﾛ^(･д･｡)(｡･д･)^ｷｮﾛ"
+                    echo
+                    exit 1
+
+                fi
+
+            fi
+
+            cd $LOCATION
             sleep 3
 
         fi
@@ -1447,12 +1579,12 @@ do
 
 done
 
+# googledriveへ書き出し
 if [[ ${canUpload2Gdrive} == "true" ]]; then
 
-    # googledriveへ書き出し
     cd
-    google-drive-ocamlfuse gdrive
     cp -f -b --suffix=_$(date +%Y%m%d_%H:%M) $PATH_SCORE $PATH_GDRIVE
+    echo "cp -f -b --suffix=_$(date +%Y%m%d_%H:%M) $PATH_SCORE $PATH_GDRIVE"
 
 fi
 
