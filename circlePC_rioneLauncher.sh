@@ -90,13 +90,7 @@ phase=0
 master_url="https://raw.githubusercontent.com/taka0628/RioneLauncher/main/rioneLauncher_2.2.2.sh"
 # master_url="https://raw.githubusercontent.com/taka0628/RioneLauncher/main/test.sh"
 
-# ブランチ取得
-temp_path=$(pwd)
-echo "temp_path: $temp_path"
-cd $AGENT
-current_branch="$(git status | grep 'ブランチ' | awk '{print $2}')"
-cd $temp_path
-temp_path=0
+
 
 echo $0
 echo $LOCATION
@@ -829,6 +823,14 @@ if [[ $canBranchChange = "true" ]] && [[ $mapnumber -eq 99 ]]; then
     done
 
 fi
+
+# ブランチ取得
+temp_path=$(pwd)
+echo "temp_path: $temp_path"
+cd $AGENT
+current_branch="$(git status | grep 'ブランチ' | awk '{print $2}')"
+cd $temp_path
+temp_path=0
 
 #  google driveへのスコア書き出し選択
 if [[ $canUpload2Gdrive = "true" ]]; then
