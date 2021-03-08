@@ -1,15 +1,17 @@
 #!/bin/bash
-#製作者: みぐりー
+#製作者: 中山
 
 # 部室PC用Launcher
-# shutdown選択時にrescueのgoogle driveにscore.csvを送信する
+# rescueのgoogle driveにscore.csvを送信可能
 # shutdownが行われた場合はその旨をscore.csvに記述する
 
-#ver2.3.1
-# 2/16
-#[add]終了後にシャットダウンができるように変更
-#[add]すべてのマップを実行する機能を追加
-#[fix]ループ表示が止まる症状を修正
+# メモ
+# 全マップを各20回実行すると36時間以上かかる
+
+# 3/8
+# [add]現在のブランチ名の表示
+# [fix]スコア取得の動作を改善
+# [fix]終了予測時間の計算をサイクルの更新があった場合のみ行うように変更
 
 
 #使用するサーバーを固定したい場合は、例のようにフルパスを指定してください。
@@ -61,6 +63,8 @@ PATH_SCORE="/score.csv"
 PATH_GDRIVE="/gdrive/remote/"
 
 # ブランチを切り替えて全マップを回す場合
+# ブランチの切り替えを行って実行すると相当の時間がかかると予想できるので非推奨
+# 例）全マップ20回 + 4ブランチ = 36時間 * 4 = 144時間 = 6日
 canBranchChange="false"
 # canBranchChange="true"
 branch_array=()
@@ -1299,7 +1303,8 @@ do
             #コンフィグのサイクル数読み込み
             config_cycle=$(cat $(echo $CONFIG | sed s@collapse.cfg@kernel.cfg@g) | grep "timesteps:" | awk '{print $2}')
 
-            next_cycle=0
+            # ゼロで初期化するとゼロ除算が発生する
+            next_cycle=1
 
             start_time=`date +%s`
 
@@ -1321,8 +1326,8 @@ do
                 # temp_lastline=0
 
 
-            
-                if [[ $next_cycle -eq $cycle ]]; then
+                # サイクル数が更新されたか？           ↓サイクル数が0でも表示を行う例外処理
+                if [[ $next_cycle -eq $cycle ]] || [[ $next_cycle -eq 1 ]]; then
 
                     # echo -n "**** Time: $cycle / $map_time*************************"
                     # echo -n " "
@@ -1332,53 +1337,64 @@ do
                 
                 fi
 
-                next_cycle=$(($cycle + 1))
 
                 tail -n $((`wc -l agent.log | awk '{print $1}'` - $lastline)) agent.log
                 temp_lastline=$lastline
                 lastline=$(wc -l agent.log | awk '{print $1}')
 
-                     # 何も出力がなければ上書き
+                # プログラムからの標準出力がない場合は表示の上書きを行う
                 if [[ $temp_lastline -eq $lastline ]] && [[ $OVERWRITING = "true" ]] ; then
+                    # サイクルの更新があった場合
+                    if [[ $next_cycle -eq $cycle ]]; then
                     
-                    # echo temp: $temp_lastline
-                    # echo lastline: $lastline
-                    end_time=`date +%s`
-                    run_time=$(($end_time - $start_time))
-                    # echo "run: $run_time"
-                    # 少数計算　scaleは小数点以下の精度
-                    # 経過時間/サイクル
-                    run_time=`echo "scale=5; $run_time / $next_cycle" | bc`
-                    # echo "run: $run_time"
-                    # ループを含む残りサイクル数
-                    rem_cycle=`echo "scale=5; ($map_time - $cycle) + ($map_time * ($LOOP - $loop - 1))" | bc`
-                    # echo "rem: $rem_cycle"
-                    # 予測時間
-                    exp_time_m=`echo "scale=1; ($rem_cycle * $run_time) / 60" | bc`
-                    if [[ `echo "$exp_time_m > 60" | bc` == 1 ]]; then
-                    
-                        exp_time_h=`echo "$exp_time_m / 60" | bc`
-                        exp_time_m=`echo "$exp_time_m % 60" | bc`
-                        str_exp=" | ${exp_time_h}h ${exp_time_m}m    "
+                        # echo temp: $temp_lastline
+                        # echo lastline: $lastline
+                        end_time=`date +%s`
+                        run_time=$(($end_time - $start_time))
+                        # echo "run: $run_time"
+                        # 少数計算　scaleは小数点以下の精度
+                        # 経過時間/サイクル
+                        run_time=`echo "scale=5; $run_time / $next_cycle" | bc`
+                        # echo "run: $run_time"
+                        # ループを含む残りサイクル数
+                        rem_cycle=`echo "scale=5; ($map_time - $cycle) + ($map_time * ($LOOP - $loop - 1))" | bc`
+                        # echo "rem: $rem_cycle"
+                        # 予測時間
+                        exp_time_m=`echo "scale=1; ($rem_cycle * $run_time) / 60" | bc`
+                        if [[ `echo "$exp_time_m > 60" | bc` == 1 ]]; then
+                        
+                            exp_time_h=`echo "$exp_time_m / 60" | bc`
+                            exp_time_m=`echo "$exp_time_m % 60" | bc`
+                            str_exp=" | ${exp_time_h}h ${exp_time_m}m    "
 
+                        else
+
+                            str_exp=" | ${exp_time_m}m    "
+                    
+                        fi
+                    
+                        echo -e "\r\c"　#カーソルを先頭に戻し、改行しない→上書き
+                        echo -e "$str_cycle $str_exp\r\c"
+                        
+
+                    # サイクルの更新がなかった場合
                     else
 
-                        str_exp=" | ${exp_time_m}m    "
-                    
+                        echo -e "\r\c"　#カーソルを先頭に戻し、改行しない→上書き
+                        echo -e "$str_cycle $str_exp\r\c"
+                        
                     fi
                     
-                    echo -e "\r\c"　#カーソルを先頭に戻し、改行しない→上書き
-                    echo -n "$str_cycle $str_exp"
-                    echo -e "\r\c"　#カーソルを先頭に戻し、改行しない→上書き
-                        
-                else
-
+                # プログラムからの標準出力があった場合は改行し出力を表示
+                elif [[ ! $temp_lastline -eq $lastline ]]; then
+                
                     echo
 
                 fi
 
+                # 次のサイクル数を計算しておくことでサイクルの更新を検知できる
+                next_cycle=$(($cycle + 1))
 
-                
 
                 if [[ ! $LIMIT_CYCLE -eq 0 ]] && [[ $cycle -ge $LIMIT_CYCLE ]] || [[ $cycle -ge $config_cycle ]]; then
 
@@ -1463,8 +1479,6 @@ do
                 fi
 
                 sleep 1
-
-                
 
             done
 
@@ -1563,11 +1577,9 @@ do
 
 done
 
+# googledriveへ書き出し
 if [[ ${canUpload2Gdrive} == "true" ]]; then
 
-    
-
-    # googledriveへ書き出し
     cd
     cp -f -b --suffix=_$(date +%Y%m%d_%H:%M) $PATH_SCORE $PATH_GDRIVE
     echo "cp -f -b --suffix=_$(date +%Y%m%d_%H:%M) $PATH_SCORE $PATH_GDRIVE"
