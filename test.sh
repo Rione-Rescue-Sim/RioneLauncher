@@ -2,6 +2,7 @@
 pwd
 
 # mergetest
+# hoge
 
 canBranchChange="true"
 branch_array=()
