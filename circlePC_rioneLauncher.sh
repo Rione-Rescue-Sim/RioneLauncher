@@ -595,7 +595,7 @@ if [ ! -f $SERVER/$MAP/scenario.xml ] || [ $ChangeConditions -eq 1 ] || [ -z $MA
                 MAP=`echo ${mapdirinfo[0]} | sed 's/+@+/ /g' | awk '{print $2}'`
                 # スコア数が膨大になるのでscvに目印を記載
                 cd
-                echo "$(date +%Y/%m/%d_%H:%M), allMap" >> score.csv
+                echo "$(date +%Y/%m/%d_%H:%M), doAllMap" >> score.csv
                 cd $LOCATION
                 break
 
@@ -1565,6 +1565,9 @@ do
 
             fi
 
+            cd $PATH_SCORE
+            echo "$(date +%Y/%m/%d_%H:%M), map change" >> score.csv
+            cd
             cd $LOCATION
             sleep 3
 
