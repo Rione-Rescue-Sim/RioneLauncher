@@ -1,6 +1,8 @@
 # !/bin/bash
 pwd
 
+# mergetest
+
 canBranchChange="true"
 branch_array=()
 branch_array=("${branch_array[@]}" "master")
