@@ -1,6 +1,8 @@
 # !/bin/bash
 pwd
 
+# dev
+
 canBranchChange="true"
 branch_array=()
 branch_array=("${branch_array[@]}" "master")
