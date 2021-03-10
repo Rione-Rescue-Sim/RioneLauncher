@@ -57,7 +57,7 @@ UPDATE=false
 
 #Google Driveへスコアを保存
 # 選択肢を表示させるならtrue
-canUpload2Gdrive="false"
+canUpload2Gdrive=true
 # マウント済みのドライブフォルダへのパス
 PATH_SCORE="/score.csv"
 PATH_GDRIVE="/gdrive/remote/"
@@ -65,7 +65,7 @@ PATH_GDRIVE="/gdrive/remote/"
 # ブランチを切り替えて全マップを回す場合
 # ブランチの切り替えを行って実行すると相当の時間がかかると予想できるので非推奨
 # 例）全マップ20回 + 4ブランチ = 36時間 * 4 = 144時間 = 6日
-canBranchChange="false"
+canBranchChange=false
 # canBranchChange="true"
 branch_array=()
 # ブランチ名を記述
@@ -826,7 +826,6 @@ fi
 
 # ブランチ取得
 temp_path=$(pwd)
-echo "temp_path: $temp_path"
 cd $AGENT
 current_branch="$(git status | grep 'ブランチ' | awk '{print $2}')"
 cd $temp_path
@@ -981,7 +980,7 @@ do
     # ///////////////////////////////////////////////////////////////////////////////////////////
     # マップ内ループ
     # レスキューシミュレーションの実行フラグ　デバッグ用
-    canExeSimuration="true"
+    canExeSimuration=false
     if [[ $canExeSimuration = "true" ]]; then
 
         for (( loop = 0; loop < $LOOP; loop++ )); do
@@ -1564,10 +1563,8 @@ do
                 fi
 
             fi
-
-            cd $PATH_SCORE
-            echo "$(date +%Y/%m/%d_%H:%M), map change" >> score.csv
             cd
+            echo "$(date +%Y/%m/%d_%H:%M), map change" >> score.csv
             cd $LOCATION
             sleep 3
 
