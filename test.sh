@@ -2,37 +2,32 @@
 pwd
 
 # dev
+array=()
+array=("1" "2" "3" "4" "5")
+echo "{#array[@]}: ${#array[@]}"
 
-canBranchChange="true"
-branch_array=()
-branch_array=("${branch_array[@]}" "master")
-branch_array=("${branch_array[@]}" "feature/21_PF_beforehand")
-branch_array=("${branch_array[@]}" "feature/dev/31_PF_taskeset")
-branch_array=("${branch_array[@]}" "feature/28_review_extinguishing")
+for i in ${array[@]}; do
+    echo "array: $i"
+done    
 
-# /////////////////////////////////////////////////////////////////////////////////
+unset array[1]
+unset array[2]
 
-branch_array_end_idx=0
-branch_array_current_idx=0
-for e in ${branch_array[@]}; do
-    echo "array[$i]: ${e}"
-    let branch_array_end_idx++
-done
+echo
+loop=0
+for i in ${array[@]}; do
+    echo "array: $i"
+    array[$loop]=$i
+    let loop++
+done 
 
-echo "array[0]: ${branch_array[0]}"
+for ((i = 0; i < 2; i++)) {
+    declare -i num=${#array[@]}-1
+    array=("${array[@]:0:$num}")
+}
 
-while true; do
 
-    if [[ $canBranchChange = true ]] && [[ $branch_array_current_idx -lt $branch_array_end_idx ]]; then
-
-        echo "branch_array[$branch_array_current_idx]: ${branch_array[$branch_array_current_idx]}"
-        let branch_array_current_idx++
-        
-    else
-
-        echo "canBranchChange: $canBranchChange"
-        break
-
-    fi
-
-done
+echo "{#array[@]}: ${#array[@]}"
+for ((i = 0; i < ${#array[@]}; i++)) {
+    echo "array[$i] = ${array[i]}"
+}

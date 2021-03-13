@@ -1011,7 +1011,7 @@ do
     # ///////////////////////////////////////////////////////////////////////////////////////////
     # マップ内ループ
     # レスキューシミュレーションの実行フラグ　デバッグ用
-    canExeSimuration=true
+    canExeSimuration=false
     if [[ $canExeSimuration = "true" ]]; then
 
         for (( loop = 0; loop < $LOOP; loop++ )); do
