@@ -558,7 +558,7 @@ if [ ! -f $SERVER/$MAP/scenario.xml ] || [ $ChangeConditions -eq 1 ] || [ -z $MA
             toalMapCount=$(($toalMapCount+1))
 
         done
-        echo " 99  すべてのマップ"
+        echo " 99  スコア取りマップリスト"
         echo
         echo "上のリストからマップ番号を選択してください(0を入力するとデフォルトを選択します)。"
 
