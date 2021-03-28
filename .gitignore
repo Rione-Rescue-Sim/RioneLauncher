@@ -1,1 +1,4 @@
 test.sh
+*.log
+test.sh
+devLauncher.sh
