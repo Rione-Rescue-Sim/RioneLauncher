@@ -1,4 +1,4 @@
-./RIO_2019/module/complex/self/RIOBuildingDetector.java:331: 警告: [unchecked] 無検査キャスト
+./RIO_2019/module/complex/self/RIOBuildingDetector.java:331: 警告:[unchecked] 無検査キャスト
         ArrayList<StandardEntity> notAssignFB = (ArrayList<StandardEntity>) allFB.clone();
                                                                                        ^
   期待値: ArrayList<StandardEntity>
@@ -8,60 +8,26 @@ Done.
 [ RCRS ADF Version 2.3.0 (build 20190221171246) ]
 
 [START ] Connect to server (host:localhost, port:7000)
-[FINISH] Connect FireStation (success:0)
 [FINISH] Connect AmbulanceCentre (success:0)
-[INFO  ] Connected - adf.agent.platoon.PlatoonAmbulance@7d9132e1 (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonFire@7d69d029 (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonPolice@6aac93e3 (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.office.OfficePolice@360df897 (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.office.OfficePolice@38104e48 (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonFire@1e410a48 (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonAmbulance@1026561c (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.office.OfficePolice@2b41c0e2 (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonPolice@72b17bbb (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.office.OfficePolice@58e2fe27 (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonFire@2e293846 (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.office.OfficePolice@7e4b47fc (NON_PRECOMPUTE)
-[FINISH] Connect PoliceOffice (success:5)
-[INFO  ] Connected - adf.agent.platoon.PlatoonAmbulance@19a8d992 (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonFire@def6642 (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonPolice@5027b9b3 (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonFire@677f03bf (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonAmbulance@1260588f (NON_PRECOMPUTE)
-[FINISH] Connect FireBrigade (success:5)
-[INFO  ] Connected - adf.agent.platoon.PlatoonPolice@4eb00cc7 (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonAmbulance@65b40019 (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonAmbulance@214d4c28 (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonPolice@1194e427 (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonAmbulance@77220868 (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonPolice@cc29e89 (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonAmbulance@2ce192fa (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonAmbulance@78f63643 (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonPolice@6743fab (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonAmbulance@42f71a9d (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonPolice@71e4cc53 (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonAmbulance@668ed70b (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonPolice@3ab8b775 (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonAmbulance@7e6a6570 (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonAmbulance@308646c9 (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonPolice@6817b806 (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonAmbulance@6cd7f590 (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonPolice@7b1787af (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonAmbulance@770f4029 (NON_PRECOMPUTE)
-[FINISH] Connect AmbulanceTeam (success:15)
-[INFO  ] Connected - adf.agent.platoon.PlatoonPolice@54de734d (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonPolice@5e5b78d3 (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonPolice@51a2ced9 (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonPolice@3b077b5f (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonPolice@d99f6c7 (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonPolice@7a15238 (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonPolice@1d93656 (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonPolice@4e05b11d (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonPolice@4e692a8e (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonPolice@68ccd3df (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonPolice@35ab4d61 (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonPolice@5ec8caa3 (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonPolice@43678976 (NON_PRECOMPUTE)
-[INFO  ] Connected - adf.agent.platoon.PlatoonPolice@7ba35fd6 (NON_PRECOMPUTE)
-[FINISH] Connect PoliceForce (success:25)
-[FINISH] Done connecting to server (50 agents)
+[FINISH] Connect FireStation (success:0)
+[FINISH] Connect PoliceOffice (success:0)
+[INFO  ] Connected - adf.agent.platoon.PlatoonAmbulance@7fbef8cb (PRECOMPUTED)
+[INFO  ] Connected - adf.agent.platoon.PlatoonFire@422ab8af (PRECOMPUTED)
+[INFO  ] Connected - adf.agent.platoon.PlatoonPolice@6e84387c (PRECOMPUTED)
+[FINISH] Connect FireBrigade (success:1)
+[FINISH] Connect PoliceForce (success:1)
+[FINISH] Connect AmbulanceTeam (success:1)
+[FINISH] Done connecting to server (3 agents)
+distans: 2147483647.000000
+NormalProcess
+NormalProcess
+NormalProcess
+NormalProcess
+NormalProcess
+NormalProcess
+NormalProcess
+NormalProcess
+NormalProcess
+NormalProcess
+NormalProcess
+NormalProcess

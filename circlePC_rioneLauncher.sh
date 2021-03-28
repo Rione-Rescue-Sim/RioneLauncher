@@ -558,7 +558,7 @@ if [ ! -f $SERVER/$MAP/scenario.xml ] || [ $ChangeConditions -eq 1 ] || [ -z $MA
             toalMapCount=$(($toalMapCount+1))
 
         done
-        echo " 99  すべてのマップ"
+        echo " 99  スコア取りマップリスト"
         echo
         echo "上のリストからマップ番号を選択してください(0を入力するとデフォルトを選択します)。"
 
@@ -597,6 +597,37 @@ if [ ! -f $SERVER/$MAP/scenario.xml ] || [ $ChangeConditions -eq 1 ] || [ -z $MA
                 cd
                 echo "$(date +%Y/%m/%d_%H:%M), doAllMap" >> score.csv
                 cd $LOCATION
+
+                # 指定のマップ名を配列から削除
+                local_loop_cnt=0 # 狭い領域内でしか使用しないことを保証
+                non_execute_map_cnt=0
+                # 削除するマップの文字列を探索し、文字列を削除（削除されたマップのインデクスは無くならない）例) mapdirinfo[0]="hoge" mapdirinfo[1]=""
+                for i in ${mapdirinfo[@]}; do
+                    temp=`echo ${i}`
+                    # この時点ではtempにberlin+@+maps/gml/berlin/map/+@+6の形式でデータがある
+                    # マップ名を抽出
+                    temp=${temp%+@+maps*}
+                    if [[ $temp = "istanbul" ]] || [[ $temp = "ny" ]] || [[ $temp = "test" ]]; then
+                        unset mapdirinfo[$local_loop_cnt]
+                        let non_execute_map_cnt++
+                    fi
+                    # echo "e: ${i}, temp: $temp"
+                    let local_loop_cnt++
+                done
+
+                # 削除された部分の要素を飛ばして代入を行う
+                local_loop_cnt=0
+                for i in ${mapdirinfo[@]}; do
+                    mapdirinfo[$local_loop_cnt]=$i
+                    let local_loop_cnt++
+                done
+                #　飛ばした数だけ最後の要素は重複したデータがあるためインデックス自体を破棄
+                for ((i = 0; i < $(($non_execute_map_cnt-1)); i++)) {
+                    declare -i num=${#mapdirinfo[@]}-1
+                    mapdirinfo=("${mapdirinfo[@]:0:$num}")
+                }
+                toalMapCount=$(($toalMapCount-$non_execute_map_cnt))
+                
                 break
 
             else
@@ -980,7 +1011,7 @@ do
     # ///////////////////////////////////////////////////////////////////////////////////////////
     # マップ内ループ
     # レスキューシミュレーションの実行フラグ　デバッグ用
-    canExeSimuration=false
+    canExeSimuration=true
     if [[ $canExeSimuration = "true" ]]; then
 
         for (( loop = 0; loop < $LOOP; loop++ )); do
@@ -1537,7 +1568,7 @@ do
             echo "########## $(($currentMapIdx+1)) / $toalMapCount Maps ##################"
             echo
             MAP=`echo ${mapdirinfo[$(($currentMapIdx))]} | sed 's/+@+/ /g' | awk '{print $2}'`
-
+            # echo "MAP: $MAP"
             cd $SERVER/$MAP 
             cd ..
 
