@@ -2,3 +2,5 @@ test.sh
 *.log
 test.sh
 devLauncher.sh
+.gradle/4.4.1/fileChanges/last-build.bin
+.gradle/4.4.1/fileHashes/fileHashes.lock

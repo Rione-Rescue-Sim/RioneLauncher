@@ -1,17 +1,11 @@
 #!/bin/bash
-#製作者: 中山
-
-# 部室PC用Launcher
-# rescueのgoogle driveにscore.csvを送信可能
-# shutdownが行われた場合はその旨をscore.csvに記述する
-
-# メモ
-# 全マップを各20回実行すると36時間以上かかる
+#製作者: みぐりー
 
 # 3/8
 # [add]現在のブランチ名の表示
 # [fix]スコア取得の動作を改善
 # [fix]終了予測時間の計算をサイクルの更新があった場合のみ行うように変更
+# [fix]全マップ実行時にマップの時間が変更される問題を解消
 
 
 #使用するサーバーを固定したい場合は、例のようにフルパスを指定してください。
@@ -55,33 +49,13 @@ SHUTDOUW=false
 # 自動アップデート有効: true, 無効: false
 UPDATE=false
 
-#Google Driveへスコアを保存
-# 選択肢を表示させるならtrue
-canUpload2Gdrive=true
-# マウント済みのドライブフォルダへのパス
-PATH_SCORE="/score.csv"
-PATH_GDRIVE="/gdrive/remote/"
-
-# ブランチを切り替えて全マップを回す場合
-# ブランチの切り替えを行って実行すると相当の時間がかかると予想できるので非推奨
-# 例）全マップ20回 + 4ブランチ = 36時間 * 4 = 144時間 = 6日
-canBranchChange=false
-# canBranchChange="true"
-branch_array=()
-# ブランチ名を記述
-branch_array=("${branch_array[@]}" "master")
-branch_array=("${branch_array[@]}" "feature/21_PF_beforehand")
-branch_array=("${branch_array[@]}" "feature/dev/31_PF_taskeset")
-branch_array=("${branch_array[@]}" "feature/28_review_extinguishing")
-
 #/////////////////////////////////////////////////////////////
 #ここから先は改変しないでくだせぇ動作が止まっても知らないゾ？↓
 
+DEBUG_FLAG=false
+
 ROOT_PATH=$(cd; pwd)
 PATH_SCORE=$ROOT_PATH$PATH_SCORE
-PATH_GDRIVE=$ROOT_PATH$PATH_GDRIVE
-
-DEBUG_FLAG=false
 
 CurrentVer=2.2.2
 os=`uname`
@@ -89,8 +63,6 @@ LOCATION=$(cd $(dirname $0); pwd)
 phase=0
 master_url="https://raw.githubusercontent.com/taka0628/RioneLauncher/main/rioneLauncher_2.2.2.sh"
 # master_url="https://raw.githubusercontent.com/taka0628/RioneLauncher/main/test.sh"
-
-
 
 echo $0
 echo $LOCATION
@@ -268,9 +240,6 @@ echo "  ● ディレクトリ検索中..."
 
 #環境変数変更
 IFS=$'\n'
-
-# ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-# ユーザ選択処理
 
 #サーバーディレクトリの登録
 if [[ -z $SERVER ]] || [[ $ChangeConditions -eq 1 ]] || [[ ! -f $SERVER/boot/start-comprun.sh ]]; then
@@ -590,44 +559,10 @@ if [ ! -f $SERVER/$MAP/scenario.xml ] || [ $ChangeConditions -eq 1 ] || [ -z $MA
             
             elif [ $mapnumber -eq 99 ]; then
 
+                echo "testを除くマップで実行します"
                 doAllMap="true"
                 #アドレス代入
                 MAP=`echo ${mapdirinfo[0]} | sed 's/+@+/ /g' | awk '{print $2}'`
-                # スコア数が膨大になるのでscvに目印を記載
-                cd
-                echo "$(date +%Y/%m/%d_%H:%M), doAllMap" >> score.csv
-                cd $LOCATION
-
-                # 指定のマップ名を配列から削除
-                local_loop_cnt=0 # 狭い領域内でしか使用しないことを保証
-                non_execute_map_cnt=0
-                # 削除するマップの文字列を探索し、文字列を削除（削除されたマップのインデクスは無くならない）例) mapdirinfo[0]="hoge" mapdirinfo[1]=""
-                for i in ${mapdirinfo[@]}; do
-                    temp=`echo ${i}`
-                    # この時点ではtempにberlin+@+maps/gml/berlin/map/+@+6の形式でデータがある
-                    # マップ名を抽出
-                    temp=${temp%+@+maps*}
-                    if [[ $temp = "istanbul" ]] || [[ $temp = "ny" ]] || [[ $temp = "test" ]]; then
-                        unset mapdirinfo[$local_loop_cnt]
-                        let non_execute_map_cnt++
-                    fi
-                    # echo "e: ${i}, temp: $temp"
-                    let local_loop_cnt++
-                done
-
-                # 削除された部分の要素を飛ばして代入を行う
-                local_loop_cnt=0
-                for i in ${mapdirinfo[@]}; do
-                    mapdirinfo[$local_loop_cnt]=$i
-                    let local_loop_cnt++
-                done
-                #　飛ばした数だけ最後の要素は重複したデータがあるためインデックス自体を破棄
-                for ((i = 0; i < $(($non_execute_map_cnt-1)); i++)) {
-                    declare -i num=${#mapdirinfo[@]}-1
-                    mapdirinfo=("${mapdirinfo[@]:0:$num}")
-                }
-                toalMapCount=$(($toalMapCount-$non_execute_map_cnt))
-                
                 break
 
             else
@@ -676,7 +611,6 @@ cd $LOCATION
 
 #瓦礫有無選択
 defalutblockade=`cat $CONFIG | grep "collapse.create-road-blockages" | awk '{print $2}'`
-echo "CONFIG: $CONFIG"
 
 if [ ! $brockade = "false" ] && [ ! $brockade = "true" ] || [ $ChangeConditions -eq 1 ]; then
     
@@ -784,14 +718,14 @@ if [ $SHUTDOUW = "true" ]; then
 
             echo 'シャットダウンは行いません'
             canShutDown="false"
-            sleep 2
+            sleep 5
             break
 
         elif [ ${canShutDown} = "confirm" ]; then
 
             echo '終了時にシャットダウンを行います'
             canShutDown='true'
-            sleep 2
+            sleep 5
             break
 
         else
@@ -805,111 +739,96 @@ if [ $SHUTDOUW = "true" ]; then
     done
 fi
 
-# ブランチ切り替え許可
-if [[ $canBranchChange = "true" ]] && [[ $mapnumber -eq 99 ]]; then
 
-    echo "ブランチの変更を許可しますか？"
-    echo
-    echo "*****************************"
-    echo
-    cd
-    cd $AGENT
-    git status
-    git branch
-    echo
-    echo "*****************************"
-    echo
-    echo "遷移ブランチリスト"
-    branch_array_end_idx=0
-    for e in ${branch_array[@]}; do
+#読み込み最大値取得
+#環境変数変更
+IFS=$' \n'
 
-        echo "array[$branch_array_end_idx]: ${e}"
-        let branch_array_end_idx++
+#エージェント
+scenariolist=(`cat $SERVER/$MAP/scenario.xml`)
 
-    done 
-    echo
-    echo "yes: confirm  |  no: n"
+line_count=1
+before_comment=0
+after_comment=0
 
-    while true; do
+for line in ${scenariolist[@]}; do
 
-        read canBranchChange
+    if [ `echo $line | grep '<!--'` ]; then
 
-        if [[ $canBranchChange = "confirm" ]]; then
-        
-            canBranchChange="true"
-            break
+        before_comment=$line_count
 
-        elif [[ $canBranchChange = "n" ]]; then
+    fi
 
-            canBranchChange="no"
-            break
-        
-        else
 
-            echo "$canBranchChange　が入力されました"
-            echo "再度入力してください"
-        
-        fi
+    if [ `echo $line | grep '\-->'` ]; then
 
-    done
+        after_comment=$line_count
 
-fi
+    fi
+
+
+    if [ ! $before_comment = 0 ] && [ ! $after_comment = 0 ]; then
+
+        for ((i=before_comment; i <= $after_comment; i++)); do
+
+            unset scenariolist[$(($i-1))]
+
+        done
+
+        before_comment=0
+        after_comment=0
+
+    fi
+
+    line_count=$(($line_count+1))
+
+done
+
+echo
+IFS=$'\n'
+
+civilian_max=`echo "${scenariolist[*]}" | grep -c "civilian"`
+policeforce_max=`echo "${scenariolist[*]}" | grep -c "policeforce"`
+firebrigade_max=`echo "${scenariolist[*]}" | grep -c "firebrigade"`
+ambulanceteam_max=`echo "${scenariolist[*]}" | grep -c "ambulanceteam"`
+
+road_max=`grep -c "rcr:road gml:id=" $SERVER/$MAP/map.gml`
+building_max=`grep -c "rcr:building gml:id=" $SERVER/$MAP/map.gml`
+
+# マップの最大サイクル数を取得
+map_time=$(grep -a -C 0 'kernel.timesteps:' $SERVER/$MAP/../config/kernel.cfg | awk '{print $2}')
+
+
+#エラーチェック
+maxlist=( $building_max $road_max $civilian_max $ambulanceteam_max $firebrigade_max $policeforce_max )
+
+errerline=0
+
+for l in ${maxlist[@]}; do
+
+    if [ $l -eq 0 ]; then
+
+        maxlist[$errerline]=-1
+
+    fi
+
+    errerline=$((errerline+1))
+
+done
 
 # ブランチ取得
 temp_path=$(pwd)
+echo "temp_path: $temp_path"
 cd $AGENT
 current_branch="$(git status | grep 'ブランチ' | awk '{print $2}')"
 cd $temp_path
 temp_path=0
 
-#  google driveへのスコア書き出し選択
-if [[ $canUpload2Gdrive = "true" ]]; then
+#環境変数変更
+IFS=$' \t\n'
 
-    echo
-    echo "gdriveへスコアを書き出しますか？"
-    echo
-    echo "yes: confirm  |  no: n"
+#////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    while true; do
-
-        read canUpload2Gdrive
-
-        if [[ $canUpload2Gdrive = "confirm" ]]; then
-        
-            canUpload2Gdrive="true"
-            break
-
-        elif [[ $canUpload2Gdrive = "n" ]]; then
-
-            canUpload2Gdrive="no"
-            break
-        
-        else
-
-            echo "$canUpload2Gdrive　が入力されました"
-            echo "再度入力してください"
-        
-        fi
-
-    done
-
-    if [[ $canUpload2Gdrive == "true" ]]; then
-
-        # google driveがマウントされていない場合
-        if [[ ! -d $PATH_GDRIVE ]]; then
-            echo "google-drive-ocamlfuse gdrive"
-            google-drive-ocamlfuse gdrive
-        fi
-
-        # 再確認
-        if [[ ! -d $PATH_GDRIVE ]]; then
-            echo "ドライブのマウントに失敗しました"
-            killcommand
-        fi
-    fi
-fi
-
-# ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 currentMapIdx=0
 
 
@@ -1011,7 +930,7 @@ do
     # ///////////////////////////////////////////////////////////////////////////////////////////
     # マップ内ループ
     # レスキューシミュレーションの実行フラグ　デバッグ用
-    canExeSimuration=false
+    canExeSimuration="true"
     if [[ $canExeSimuration = "true" ]]; then
 
         for (( loop = 0; loop < $LOOP; loop++ )); do
@@ -1179,13 +1098,6 @@ do
 
                     echo -n $1"%"
 
-                    if [[ $1 -eq 100 ]]; then
-
-                        echo -e "\e[32m" "OK\c"
-                        echo -e "\e[m\c"
-
-                    fi
-
                 fi
 
             }
@@ -1266,32 +1178,32 @@ do
                 fi
 
                 #進行度表示
-                str_Civilian="      Civilian | `proportion $(($civilian_read*100/${maxlist[2]}))`"
-                str_AmbulanceTeam=" AmbulanceTeam | `proportion $(($ambulanceteam_read*100/${maxlist[3]}))`"
-                str_FireBrigade="   FireBrigade | `proportion $(($firebrigade_read*100/${maxlist[4]}))`"
-                str_PoliceForce="   PoliceForce | `proportion $(($policeforce_read*100/${maxlist[5]}))`"
+                # str_Civilian="      Civilian | `proportion $(($civilian_read*100/${maxlist[2]}))`"
+                # str_AmbulanceTeam=" AmbulanceTeam | `proportion $(($ambulanceteam_read*100/${maxlist[3]}))`"
+                # str_FireBrigade="   FireBrigade | `proportion $(($firebrigade_read*100/${maxlist[4]}))`"
+                # str_PoliceForce="   PoliceForce | `proportion $(($policeforce_read*100/${maxlist[5]}))`"
 
-                echo -e "\e[12;0H" #カーソルを12行目の0列目に戻す
-                echo -e "$str_Civilian\n$str_AmbulanceTeam\n$str_FireBrigade\n$str_PoliceForce\c"
+                # echo -e "\e[12;0H" #カーソルを12行目の0列目に戻す
+                # echo -e "$str_Civilian\n$str_AmbulanceTeam\n$str_FireBrigade\n$str_PoliceForce\c"
 
 
                 #  色付き進捗バーは非常に重いので廃止。一応残してある
-                # echo -e "\e[11;0H" #カーソルを11行目の0列目に戻す
-                # echo -e "\e[K\c"
-                # echo -e "      Civilian |"`lording_ber $(($civilian_read*100/${maxlist[2]})) 2` "\e[m|" `proportion $(($civilian_read*100/${maxlist[2]}))`
-                # echo
+                echo -e "\e[11;0H" #カーソルを11行目の0列目に戻す
+                echo -e "\e[K\c"
+                echo -e "      Civilian |"`lording_ber $(($civilian_read*100/${maxlist[2]})) 2` "\e[m|" `proportion $(($civilian_read*100/${maxlist[2]}))`
+                echo
 
-                # echo -e "\e[K\c"
-                # echo -e " AmbulanceTeam |"`lording_ber $(($ambulanceteam_read*100/${maxlist[3]})) 3` "\e[m|" `proportion $(($ambulanceteam_read*100/${maxlist[3]}))`
-                # echo
+                echo -e "\e[K\c"
+                echo -e " AmbulanceTeam |"`lording_ber $(($ambulanceteam_read*100/${maxlist[3]})) 3` "\e[m|" `proportion $(($ambulanceteam_read*100/${maxlist[3]}))`
+                echo
 
-                # echo -e "\e[K\c"
-                # echo -e "   FireBrigade |"`lording_ber $(($firebrigade_read*100/${maxlist[4]})) 4` "\e[m|" `proportion $(($firebrigade_read*100/${maxlist[4]}))`
-                # echo
+                echo -e "\e[K\c"
+                echo -e "   FireBrigade |"`lording_ber $(($firebrigade_read*100/${maxlist[4]})) 4` "\e[m|" `proportion $(($firebrigade_read*100/${maxlist[4]}))`
+                echo
 
-                # echo -e "\e[K\c"
-                # echo -e "   PoliceForce |"`lording_ber $(($policeforce_read*100/${maxlist[5]})) 5` "\e[m|" `proportion $(($policeforce_read*100/${maxlist[5]}))`
-                # echo
+                echo -e "\e[K\c"
+                echo -e "   PoliceForce |"`lording_ber $(($policeforce_read*100/${maxlist[5]})) 5` "\e[m|" `proportion $(($policeforce_read*100/${maxlist[5]}))`
+                echo
 
                 if [ `grep -c "Loader is not found." agent.log` -eq 1 ]; then
 
@@ -1369,8 +1281,15 @@ do
                 
                 fi
 
+                # tail -n $((`wc -l agent.log | awk '{print $1}'` - $lastline)) agent.log
+                isOut=$((`wc -l agent.log | awk '{print $1}'` - $lastline))
+                if [[ isOut -gt 0 ]]; then
+                    echo
+                    echo
+                    tail -n $((`wc -l agent.log | awk '{print $1}'` - $lastline)) agent.log
+                    echo
+                fi
 
-                tail -n $((`wc -l agent.log | awk '{print $1}'` - $lastline)) agent.log
                 temp_lastline=$lastline
                 lastline=$(wc -l agent.log | awk '{print $1}')
 
@@ -1417,11 +1336,6 @@ do
                         
                     fi
                     
-                # プログラムからの標準出力があった場合は改行し出力を表示
-                elif [[ ! $temp_lastline -eq $lastline ]]; then
-                
-                    echo
-
                 fi
 
                 # 次のサイクル数を計算しておくことでサイクルの更新を検知できる
@@ -1568,7 +1482,7 @@ do
             echo "########## $(($currentMapIdx+1)) / $toalMapCount Maps ##################"
             echo
             MAP=`echo ${mapdirinfo[$(($currentMapIdx))]} | sed 's/+@+/ /g' | awk '{print $2}'`
-            # echo "MAP: $MAP"
+
             cd $SERVER/$MAP 
             cd ..
 
@@ -1594,8 +1508,7 @@ do
                 fi
 
             fi
-            cd
-            echo "$(date +%Y/%m/%d_%H:%M), map change" >> score.csv
+
             cd $LOCATION
             sleep 3
 
@@ -1610,15 +1523,6 @@ do
 
 done
 
-# googledriveへ書き出し
-if [[ ${canUpload2Gdrive} == "true" ]]; then
-
-    cd
-    cp -f -b --suffix=_$(date +%Y%m%d_%H:%M) $PATH_SCORE $PATH_GDRIVE
-    echo "cp -f -b --suffix=_$(date +%Y%m%d_%H:%M) $PATH_SCORE $PATH_GDRIVE"
-
-fi
-
 if [[ ${canShutDown} == "true" ]]; then
 
     echo "3分後にシャットダウンします"
@@ -1626,8 +1530,6 @@ if [[ ${canShutDown} == "true" ]]; then
     original_clear
     echo
     shutdown -h +3
-    echo "$(date +%Y/%m/%d_%H:%M), shutdown done" >> score.csv
-    sync 
     sleep 5
 
 fi

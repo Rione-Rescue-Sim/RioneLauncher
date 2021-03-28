@@ -2,32 +2,14 @@
 pwd
 
 # dev
-array=()
-array=("1" "2" "3" "4" "5")
-echo "{#array[@]}: ${#array[@]}"
+str=hoge
+echo "str: $str, ${#str}"
 
-for i in ${array[@]}; do
-    echo "array: $i"
-done    
+str=0
+echo "str: $str, ${#str}"
 
-unset array[1]
-unset array[2]
+str=""
+echo "str: $str, ${#str}"
 
-echo
-loop=0
-for i in ${array[@]}; do
-    echo "array: $i"
-    array[$loop]=$i
-    let loop++
-done 
-
-for ((i = 0; i < 2; i++)) {
-    declare -i num=${#array[@]}-1
-    array=("${array[@]:0:$num}")
-}
-
-
-echo "{#array[@]}: ${#array[@]}"
-for ((i = 0; i < ${#array[@]}; i++)) {
-    echo "array[$i] = ${array[i]}"
-}
+ROOT_PATH=$(cd; pwd)
+echo $ROOT_PATH
