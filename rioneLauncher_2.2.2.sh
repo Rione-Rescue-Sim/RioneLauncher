@@ -47,7 +47,7 @@ OVERWRITING=true
 SHUTDOUW=false
 
 # 自動アップデート有効: true, 無効: false
-UPDATE=false
+UPDATE=true
 
 #/////////////////////////////////////////////////////////////
 #ここから先は改変しないでくだせぇ動作が止まっても知らないゾ？↓
@@ -1281,8 +1281,15 @@ do
                 
                 fi
 
+                # tail -n $((`wc -l agent.log | awk '{print $1}'` - $lastline)) agent.log
+                isOut=$((`wc -l agent.log | awk '{print $1}'` - $lastline))
+                if [[ isOut -gt 0 ]]; then
+                    echo
+                    echo
+                    tail -n $((`wc -l agent.log | awk '{print $1}'` - $lastline)) agent.log
+                    echo
+                fi
 
-                tail -n $((`wc -l agent.log | awk '{print $1}'` - $lastline)) agent.log
                 temp_lastline=$lastline
                 lastline=$(wc -l agent.log | awk '{print $1}')
 
@@ -1329,11 +1336,6 @@ do
                         
                     fi
                     
-                # プログラムからの標準出力があった場合は改行し出力を表示
-                elif [[ ! $temp_lastline -eq $lastline ]]; then
-                
-                    echo
-
                 fi
 
                 # 次のサイクル数を計算しておくことでサイクルの更新を検知できる
