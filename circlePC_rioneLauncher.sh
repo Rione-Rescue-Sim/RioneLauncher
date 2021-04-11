@@ -870,6 +870,7 @@ if [[ $canUpload2Gdrive = "true" ]]; then
     echo
     echo "yes: confirm  |  no: n"
 
+
     while true; do
 
         read canUpload2Gdrive
@@ -898,7 +899,9 @@ if [[ $canUpload2Gdrive = "true" ]]; then
         # google driveがマウントされていない場合
         if [[ ! -d $PATH_GDRIVE ]]; then
             echo "google-drive-ocamlfuse gdrive"
+            cd
             google-drive-ocamlfuse gdrive
+            cd $LOCATION
         fi
 
         # 再確認
@@ -1369,8 +1372,13 @@ do
                 
                 fi
 
-
-                tail -n $((`wc -l agent.log | awk '{print $1}'` - $lastline)) agent.log
+                isOut=$((`wc -l agent.log | awk '{print $1}'` - $lastline))
+                if [[ isOut -gt 0 ]]; then
+                    echo
+                    echo
+                    tail -n $((`wc -l agent.log | awk '{print $1}'` - $lastline)) agent.log
+                    echo
+                fi
                 temp_lastline=$lastline
                 lastline=$(wc -l agent.log | awk '{print $1}')
 
@@ -1417,11 +1425,6 @@ do
                         
                     fi
                     
-                # プログラムからの標準出力があった場合は改行し出力を表示
-                elif [[ ! $temp_lastline -eq $lastline ]]; then
-                
-                    echo
-
                 fi
 
                 # 次のサイクル数を計算しておくことでサイクルの更新を検知できる
