@@ -870,6 +870,7 @@ if [[ $canUpload2Gdrive = "true" ]]; then
     echo
     echo "yes: confirm  |  no: n"
 
+
     while true; do
 
         read canUpload2Gdrive
@@ -898,7 +899,9 @@ if [[ $canUpload2Gdrive = "true" ]]; then
         # google driveがマウントされていない場合
         if [[ ! -d $PATH_GDRIVE ]]; then
             echo "google-drive-ocamlfuse gdrive"
+            cd
             google-drive-ocamlfuse gdrive
+            cd $LOCATION
         fi
 
         # 再確認
