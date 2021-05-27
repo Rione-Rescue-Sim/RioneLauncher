@@ -35,7 +35,7 @@ echo "javaのバージョンが11以上であることを確認してくださ�
 echo "インストールされていない場合はCtrl+Cで中止してください"
 echo "OpenJDK 11をインストールする場合は以下を実行してください"
 echo
-echo "sudo apt-get install openjdk-8-jre"
+echo "sudo apt-get install openjdk-11-jre"
 echo
 echo "次に進む [ENTER]"
 read 
@@ -85,7 +85,7 @@ if [[ $canInstall = "true" ]]; then
     mkdir temp
     cd temp
 
-    git clone git@github.com:roborescue/rcrs-server.git
+    git https://github.com/roborescue/rcrs-server.git
     cd rcrs-server
     ./gradlew clean
     ./gradlew completeBuild
