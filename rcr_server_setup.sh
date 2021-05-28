@@ -85,7 +85,7 @@ if [[ $canInstall = "true" ]]; then
     mkdir temp
     cd temp
 
-    git https://github.com/roborescue/rcrs-server.git
+    git clone https://github.com/roborescue/rcrs-server.git
     cd rcrs-server
     ./gradlew clean
     ./gradlew completeBuild
