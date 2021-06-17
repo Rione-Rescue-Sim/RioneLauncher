@@ -6,7 +6,7 @@ git clone https://github.com/taka0628/RioneLauncher.git
 bash pre_calculation.sh
 
 [通常実行]\
-bash rioneLauncher2.2.2.sh 1
+bash rioneLauncher_2.2.2.sh 1
 
 [サークル用PCランチャー]\
 bash circlePC_rioneLauncher.sh 1
