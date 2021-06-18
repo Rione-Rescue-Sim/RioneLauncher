@@ -11,6 +11,9 @@ bash rioneLauncher_2.2.2.sh 1
 [サークル用PCランチャー]\
 bash circlePC_rioneLauncher.sh 1
 
+[鯖更新]\
+bash rcr_server_setup.sh\
+
 [通常版との違い]\
 ブランチを変更して実行可能\
 google driveへのスコアアップロード
