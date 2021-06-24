@@ -35,7 +35,7 @@ echo "javaのバージョンが11以上であることを確認してくださ�
 echo "インストールされていない場合はCtrl+Cで中止してください"
 echo "OpenJDK 11をインストールする場合は以下を実行してください"
 echo
-echo "sudo apt-get install openjdk-11-jre"
+echo "sudo apt-get install openjdk-11-jdk"
 echo
 echo "次に進む [ENTER]"
 read 
