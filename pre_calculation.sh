@@ -1,10 +1,10 @@
 #!/bin/bash
 
-SERVER="/git/rcrs-server"
+SERVER="/git/rcrs-server_latest"
 
 AGENT="/git/rionerescue"
 
-KILL="/git/rcrs-server/boot/"
+KILL="/git/rcrs-server_latest/boot/"
 
 MAP="maps/gml/test/map"
 
