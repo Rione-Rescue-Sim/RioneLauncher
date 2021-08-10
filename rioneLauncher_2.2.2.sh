@@ -1438,7 +1438,7 @@ do
             echo "########## $(($loop+1)) / $LOOP Finish ##################"
             echo
 
-            sleep 1
+            sleep 5
 
         done
 
