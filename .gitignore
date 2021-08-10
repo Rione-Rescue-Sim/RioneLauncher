@@ -6,3 +6,4 @@ devLauncher.sh
 .gradle/4.4.1/fileHashes/fileHashes.lock
 agent.log
 server.log
+*.csv
