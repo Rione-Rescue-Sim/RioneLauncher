@@ -55,7 +55,7 @@ UPDATE=false
 DEBUG_FLAG=false
 
 ROOT_PATH=$(cd; pwd)
-PATH_SCORE=$ROOT_PATH$PATH_SCORE
+CURRENT_PATH=$(pwd)
 
 CurrentVer=2.2.2
 os=`uname`
@@ -1407,6 +1407,9 @@ do
 
                     echo -e "◆ 最終スコアは"$score"でした。"
                     
+                    temp_path=$(pwd)
+                    cd $CURRENT_PATH
+
                     [ ! -f score.csv ] && echo 'Date, Score, Server, Agent, Map, Blockade' > score.csv
                     [ $brockademenu = 'あり' ] && is_blockade_exit=yes
                     [ $brockademenu = 'なし' ] && is_blockade_exit=no
@@ -1415,6 +1418,9 @@ do
                     echo
                     echo "スコアは'score.csv'に記録しました。"
                     echo
+
+                    cd $temp_path
+                    temp_path=0
 
                     total_score=$(echo $total_score + $score | bc -l)
 
