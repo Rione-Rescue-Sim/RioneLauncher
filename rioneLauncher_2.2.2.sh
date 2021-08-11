@@ -1439,6 +1439,9 @@ do
             echo
 
             sleep 5
+            sync
+            sleep 3
+
 
         done
 
