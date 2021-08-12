@@ -1191,6 +1191,9 @@ while true; do
                     if [ $(cat agent.log | grep "Done connecting to server" | awk '{print $6}' | sed -e 's/(//g') -eq 0 ]; then
 
                         echo "[ERROR] $LINENO"
+                        echo $(cat agent.log)
+                        echo $(cat server.log)
+                        ps -e
                         errerbreak
 
                     fi
