@@ -1408,7 +1408,7 @@ while true; do
 
             sleep 5
 
-            temp_kill_pid=$(pgrep "dbus-launcher")
+            temp_kill_pid=$(pgrep "dbus-launch")
             if [[ -n ${temp_kill_pid} ]]; then
 
                 kill -9 ${temp_kill_pid}
