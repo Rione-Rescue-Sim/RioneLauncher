@@ -1433,7 +1433,7 @@ while true; do
                 kill -9 ${temp_kill_pid}
 
             fi
-            temp_kill_pid=$(pgrep "gnome-terminal-")
+            temp_kill_pid=$(ps -ef | grep gnome-terminal-server | grep root | awk '{print $2}')
             if [[ -n ${temp_kill_pid} ]]; then
 
                 kill -9 ${temp_kill_pid}
