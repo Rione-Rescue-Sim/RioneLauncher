@@ -1411,6 +1411,7 @@ while true; do
 
             sleep 5
 
+            # dbusのプロセスはすべて終了させる
             temp_kill_pid=$(pgrep "dbus")
             if [[ -n ${temp_kill_pid} ]]; then
 
