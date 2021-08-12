@@ -1181,6 +1181,7 @@ while true; do
 
                 if [ $(grep -c "Loader is not found." agent.log) -eq 1 ]; then
 
+                    echo "[ERROR] $(LINENO)"
                     errerbreak
 
                 fi
@@ -1189,6 +1190,7 @@ while true; do
 
                     if [ $(cat agent.log | grep "Done connecting to server" | awk '{print $6}' | sed -e 's/(//g') -eq 0 ]; then
 
+                        echo "[ERROR] $(LINENO)"
                         errerbreak
 
                     fi
