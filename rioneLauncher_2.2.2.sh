@@ -1433,6 +1433,12 @@ while true; do
                 kill -9 ${temp_kill_pid}
 
             fi
+            temp_kill_pid=$(pgrep "gnome-terminal")
+            if [[ -n ${temp_kill_pid} ]]; then
+
+                kill -9 ${temp_kill_pid}
+
+            fi
             unset temp_kill_pid
 
             sync
