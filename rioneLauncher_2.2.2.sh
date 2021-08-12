@@ -957,7 +957,8 @@ while true; do
             #サーバー起動
             if [ $os = "Linux" ]; then
 
-                gnome-terminal --tab -x bash -c "
+                # gnome-terminal --tab -x bash -c "
+                gnome-terminal -x bash -c "
 
                     #[C+ctrl]検知
                     trap 'last2' {1,2,3}
