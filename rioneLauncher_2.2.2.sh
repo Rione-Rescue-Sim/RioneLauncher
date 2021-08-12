@@ -1181,7 +1181,7 @@ while true; do
 
                 if [ $(grep -c "Loader is not found." agent.log) -eq 1 ]; then
 
-                    echo "[ERROR] $(LINENO)"
+                    echo "[ERROR] $LINENO"
                     errerbreak
 
                 fi
@@ -1190,7 +1190,7 @@ while true; do
 
                     if [ $(cat agent.log | grep "Done connecting to server" | awk '{print $6}' | sed -e 's/(//g') -eq 0 ]; then
 
-                        echo "[ERROR] $(LINENO)"
+                        echo "[ERROR] $LINENO"
                         errerbreak
 
                     fi
@@ -1411,7 +1411,7 @@ while true; do
 
             sleep 5
 
-            temp_kill_pid=$(pgrep "dbus-launch")
+            temp_kill_pid=$(pgrep "dbus")
             if [[ -n ${temp_kill_pid} ]]; then
 
                 kill -9 ${temp_kill_pid}
