@@ -48,6 +48,10 @@ SHUTDOUW=false
 # 自動アップデート有効: true, 無効: false
 UPDATE=false
 
+# コンテナのユーザ名
+# コンテナ内でgnome-terminalのkillで使用
+DOCKER_USER_NAME=RDocker
+
 #/////////////////////////////////////////////////////////////
 #ここから先は改変しないでくだせぇ動作が止まっても知らないゾ？↓
 
@@ -125,6 +129,36 @@ killcommand() {
         break
     done
 
+}
+
+kill_docker_gnome-terminal(){
+    # ターミナルに関するプロセスをすべてkill
+    # pgrepなどを使わずに回りくどい書き方をしているのはkillの対象がターミナルなのでフィルタを厳密にするため
+    temp_kill_pid=$(ps -ef | grep dbus | grep ${DOCKER_USER_NAME} | awk '{print $2}')
+    if [[ -n ${temp_kill_pid} ]]; then
+
+        kill -9 ${temp_kill_pid}
+
+    fi
+    temp_kill_pid=$(ps -ef | grep gvfsd | grep ${DOCKER_USER_NAME} | awk '{print $2}')
+    if [[ -n ${temp_kill_pid} ]]; then
+
+        kill -9 ${temp_kill_pid}
+
+    fi
+    temp_kill_pid=$(ps -ef | grep dconf-service | grep ${DOCKER_USER_NAME} | awk '{print $2}')
+    if [[ -n ${temp_kill_pid} ]]; then
+
+        kill -9 ${temp_kill_pid}
+
+    fi
+    temp_kill_pid=$(ps -ef | grep gnome-terminal-server | grep ${DOCKER_USER_NAME} | awk '{print $2}')
+    if [[ -n ${temp_kill_pid} ]]; then
+
+        kill -9 ${temp_kill_pid}
+
+    fi
+    unset temp_kill_pid
 }
 
 last() {
@@ -1191,6 +1225,9 @@ while true; do
                     if [ $(cat agent.log | grep "Done connecting to server" | awk '{print $6}' | sed -e 's/(//g') -eq 0 ]; then
 
                         echo "[ERROR] $LINENO"
+                        echo $(cat agent.log)
+                        echo $(cat server.log)
+                        ps -e
                         errerbreak
 
                     fi
@@ -1409,19 +1446,10 @@ while true; do
             echo "########## $(($loop + 1)) / $LOOP Finish ##################"
             echo
 
-            sleep 5
-
-            # dbusのプロセスはすべて終了させる
-            temp_kill_pid=$(pgrep "dbus")
-            if [[ -n ${temp_kill_pid} ]]; then
-
-                kill -9 ${temp_kill_pid}
-
-            fi
-            unset temp_kill_pid
-
-            sync
             sleep 3
+            kill_docker_gnome-terminal
+            sync
+            sleep 5
 
         done
 
