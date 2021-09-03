@@ -940,7 +940,14 @@ while true; do
     scores=()
     MaxDigitScore=0 #スコアの桁数の最大値を保存
 
-    function server_set(){
+    function server_restart(){
+
+        rm server.log &>/dev/null
+        rm agent.log &>/dev/null
+
+        touch agent.log
+        touch server.log
+
         #サーバー起動
         if [ $os = "Linux" ]; then
 
@@ -1272,7 +1279,7 @@ while true; do
                         echo "[ERROR] $LINENO"
                         echo "サーバを再起動します"
                         kill_docker_gnome-terminal
-                        server_set
+                        server_restart
                         continue
 
                     fi
@@ -1284,7 +1291,7 @@ while true; do
                             echo "[ERROR] $LINENO"
                             echo "サーバを再起動します"
                             kill_docker_gnome-terminal
-                            server_set
+                            server_restart
                             continue
 
                         fi
