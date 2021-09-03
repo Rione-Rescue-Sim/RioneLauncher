@@ -1291,64 +1291,40 @@ while true; do
                 echo -e "   PoliceForce |"$(lording_ber $(($policeforce_read * 100 / ${maxlist[5]})) 5) "\e[m|" $(proportion $(($policeforce_read * 100 / ${maxlist[5]})))
                 echo
 
+                if [ $(grep -c "Loader is not found." agent.log) -eq 1 ]; then
 
+                    echo "[ERROR] $LINENO"
+                    errerbreak
 
-                max=5
-                canBreak=false
-                for ((i=0; i < $max; i++)); do
+                fi
 
-                    if [ $(grep -c "Loader is not found." agent.log) -eq 1 ]; then
+                if [ ! $(grep -c "Done connecting to server" agent.log) -eq 0 ]; then
+
+                    if [ $(cat agent.log | grep "Done connecting to server" | awk '{print $6}' | sed -e 's/(//g') -eq 0 ]; then
 
                         echo "[ERROR] $LINENO"
-                        echo "サーバを再起動します"
-                        kill_docker_gnome-terminal
-                        server_restart
-                        continue
+                        errerbreak
 
                     fi
 
-                    if [ ! $(grep -c "Done connecting to server" agent.log) -eq 0 ]; then
+                    if [ $(cat agent.log | grep "Done connecting to server" | awk '{print $6}' | sed -e 's/(//g') -gt 0 ]; then
 
-                        if [ $(cat agent.log | grep "Done connecting to server" | awk '{print $6}' | sed -e 's/(//g') -eq 0 ]; then
+                        if [[ $START_LAUNCH = "start.sh" ]]; then
 
-                            echo "[ERROR] $LINENO"
-                            echo "サーバを再起動します"
-                            kill_docker_gnome-terminal
-                            server_restart
-                            continue
+                            [ ! $(grep -c "failed: No more agents" server.log) -eq 1 ] && continue
 
                         fi
 
-                        if [ $(cat agent.log | grep "Done connecting to server" | awk '{print $6}' | sed -e 's/(//g') -gt 0 ]; then
-
-                            if [[ $START_LAUNCH = "start.sh" ]]; then
-
-                                [ ! $(grep -c "failed: No more agents" server.log) -eq 1 ] && continue
-
-                            fi
-
-                            echo
-                            echo
-                            canBreak=true
-
-                            break
-
-                        fi
-
-                    else
+                        echo
+                        echo
 
                         break
 
                     fi
 
-                done
-                unset max
-
-                if [[ $canBreak == true ]]; then
-
-                    break
-
                 fi
+
+                sleep 1
 
             done
 
