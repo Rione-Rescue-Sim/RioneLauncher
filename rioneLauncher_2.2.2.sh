@@ -138,25 +138,25 @@ kill_docker_gnome-terminal(){
     if [[ -n ${temp_kill_pid} ]]; then
 
         # -q: プロセスが存在しない場合にメッセージを表示しない
-        kill -9q ${temp_kill_pid}
+        kill -q ${temp_kill_pid}
 
     fi
     temp_kill_pid=$(ps -ef | grep gvfsd | grep ${DOCKER_USER_NAME} | awk '{print $2}')
     if [[ -n ${temp_kill_pid} ]]; then
 
-        kill -9q ${temp_kill_pid}
+        kill -q ${temp_kill_pid}
 
     fi
     temp_kill_pid=$(ps -ef | grep dconf-service | grep ${DOCKER_USER_NAME} | awk '{print $2}')
     if [[ -n ${temp_kill_pid} ]]; then
 
-        kill -9q ${temp_kill_pid}
+        kill -q ${temp_kill_pid}
 
     fi
     temp_kill_pid=$(ps -ef | grep gnome-terminal-server | grep ${DOCKER_USER_NAME} | awk '{print $2}')
     if [[ -n ${temp_kill_pid} ]]; then
 
-        kill -9q ${temp_kill_pid}
+        kill -q ${temp_kill_pid}
 
     fi
 
@@ -1069,7 +1069,8 @@ while true; do
 
                     if [ ! -s $LOCATION/server.log ]; then
 
-                        echo "$LINENO サーバを再起動します"
+                        echo -e "[ERROR]\n\t$LINENO サーバを再起動します"
+                        kill_docker_gnome-terminal
                         sleep 3
                         continue
 
