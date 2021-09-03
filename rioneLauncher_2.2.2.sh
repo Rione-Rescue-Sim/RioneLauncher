@@ -137,25 +137,25 @@ kill_docker_gnome-terminal(){
     local temp_kill_pid=$(ps -ef | grep dbus | grep ${DOCKER_USER_NAME} | awk '{print $2}')
     if [[ -n ${temp_kill_pid} ]]; then
 
-        kill -9 ${temp_kill_pid} >/dev/null
+        kill -9 ${temp_kill_pid} 2>/dev/null
 
     fi
     temp_kill_pid=$(ps -ef | grep gvfsd | grep ${DOCKER_USER_NAME} | awk '{print $2}')
     if [[ -n ${temp_kill_pid} ]]; then
 
-        kill -9 ${temp_kill_pid} >/dev/null
+        kill -9 ${temp_kill_pid} 2>/dev/null
 
     fi
     temp_kill_pid=$(ps -ef | grep dconf-service | grep ${DOCKER_USER_NAME} | awk '{print $2}')
     if [[ -n ${temp_kill_pid} ]]; then
 
-        kill -9 ${temp_kill_pid} >/dev/null
+        kill -9 ${temp_kill_pid} 2>/dev/null
 
     fi
     temp_kill_pid=$(ps -ef | grep gnome-terminal-server | grep ${DOCKER_USER_NAME} | awk '{print $2}')
     if [[ -n ${temp_kill_pid} ]]; then
 
-        kill -9 ${temp_kill_pid} >/dev/null
+        kill -9 ${temp_kill_pid} 2>/dev/null
 
     fi
 
