@@ -1065,7 +1065,14 @@ while true; do
                     read waitserver
 
                 "&
-                echo "gnome-terminal: $?"
+
+                sleep 1
+
+                if [ ! -s $LOCATION/server.log ]; then
+
+                    echo "$LINENO [TEST]"
+
+                fi
 
             else
 
