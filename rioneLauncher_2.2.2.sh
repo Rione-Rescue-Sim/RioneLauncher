@@ -1069,7 +1069,7 @@ while true; do
 
                     if [ ! -s $LOCATION/server.log ]; then
 
-                        kill_docker_gnome-terminal
+                        # kill_docker_gnome-terminal
                         continue
 
                     else
