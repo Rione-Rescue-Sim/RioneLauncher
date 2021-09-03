@@ -1046,7 +1046,8 @@ while true; do
             sed -i "s/$(cat $START_LAUNCH | grep 'startKernel')/startKernel --nomenu --autorun/g" $START_LAUNCH
             sed -i "s/$(cat $START_LAUNCH | grep 'startSims')/startSims --nogui/g" $START_LAUNCH
 
-                #サーバー起動
+
+            #サーバー起動
             if [ $os = "Linux" ]; then
 
                 # gnome-terminal --tab -x bash -c "
@@ -1063,13 +1064,20 @@ while true; do
 
                     read waitserver
 
-                " &
+                "
+                if [[ $? -ne 0 ]]; then
+
+                    echo -e "[ERROR]\n\t異常を検知"
+
+                fi
 
             else
 
                 bash $START_LAUNCH -m ../$MAP/ -c ../$(echo $CONFIG | sed "s@$SERVER/@@g" | sed 's@collapse.cfg@@g') >$LOCATION/server.log &
 
             fi
+
+
 
             #サーバー待機
             echo " ▼ サーバー起動中..."
