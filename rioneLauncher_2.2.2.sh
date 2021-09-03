@@ -1069,7 +1069,8 @@ while true; do
 
                     if [ ! -s $LOCATION/server.log ]; then
 
-                        # kill_docker_gnome-terminal
+                        echo "$LINENO サーバを再起動します"
+                        sleep 3
                         continue
 
                     else
