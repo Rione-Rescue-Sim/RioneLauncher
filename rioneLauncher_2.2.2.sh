@@ -1222,6 +1222,7 @@ while true; do
 
 
                 max=5
+                canBreak=false
                 for ((i=0; i < $max; i++)); do
 
                     if [ $(grep -c "Loader is not found." agent.log) -eq 1 ]; then
@@ -1256,6 +1257,7 @@ while true; do
 
                             echo
                             echo
+                            canBreak=true
 
                             break
 
@@ -1270,7 +1272,11 @@ while true; do
                 done
                 unset max
 
-                sleep 1
+                if [[ $canBreak == true ]]; then
+
+                    break
+
+                fi
 
             done
 
