@@ -1065,11 +1065,7 @@ while true; do
                     read waitserver
 
                 "
-                if [[ $? -ne 0 ]]; then
-
-                    echo -e "[ERROR]\n\t異常を検知"
-
-                fi
+                echo "gnome-terminal: $?"
 
             else
 
