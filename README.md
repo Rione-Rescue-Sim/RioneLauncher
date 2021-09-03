@@ -1,7 +1,7 @@
 # RioneLauncher
 ## clone
 ```
-git clone https://github.com/taka0628/RioneLauncher.git
+git clone git@github.com:taka0628/RioneLauncher.git
 ```
 
 ## 事前計算
