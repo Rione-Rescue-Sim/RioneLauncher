@@ -1064,7 +1064,7 @@ while true; do
 
                     read waitserver
 
-                "
+                "&
                 echo "gnome-terminal: $?"
 
             else
