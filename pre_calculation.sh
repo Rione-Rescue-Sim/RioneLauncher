@@ -1,10 +1,10 @@
 #!/bin/bash
 
-SERVER="/git/rcrs-server_latest"
+SERVER="/rcrs-server_latest"
 
-AGENT="/git/rionerescue"
+AGENT="/rionerescue"
 
-KILL="/git/rcrs-server_latest/boot/"
+KILL="/rcrs-server_latest/boot/"
 
 MAP="maps/gml/test/map"
 
@@ -107,7 +107,7 @@ KILL=$ROOT_PATH$KILL
 
 
 echo
-echo 
+echo
 echo "  ● ディレクトリ検索中..."
 
 #環境変数変更
@@ -117,7 +117,7 @@ IFS=$'\n'
 if [[ -z $SERVER ]] || [[ $ChangeConditions -eq 1 ]] || [[ ! -f $SERVER/boot/start-comprun.sh ]]; then
 
     serverdirinfo=($(find ~/ -maxdepth 4 -type d -name ".*" -prune -o -type f -print | grep jars/rescuecore2.jar | sed 's@/jars/rescuecore2.jar@@g')) &>/dev/null
-    
+
     original_clear
 
     if [ ${#serverdirinfo[@]} -eq 0 ]; then
@@ -134,7 +134,7 @@ if [[ -z $SERVER ]] || [[ $ChangeConditions -eq 1 ]] || [[ ! -f $SERVER/boot/sta
         #サーバー名+ディレクトリ+文字数
         count=0
         for i in ${serverdirinfo[@]}; do
-        
+
             mapname=$(echo $i | sed 's@/@ @g' | awk '{print $NF}')
 
             serverdirinfo[$count]=$mapname"+@+"$i"+@+"${#mapname}
@@ -142,7 +142,7 @@ if [[ -z $SERVER ]] || [[ $ChangeConditions -eq 1 ]] || [[ ! -f $SERVER/boot/sta
             count=$(($count+1))
 
         done
-        
+
         #文字数最大値取得
         maxservername=$(echo "${serverdirinfo[*]}" | sed 's/+@+/ /g' | awk '{if(m<$3) m=$3} END{print m}')
 
@@ -159,20 +159,20 @@ if [[ -z $SERVER ]] || [[ $ChangeConditions -eq 1 ]] || [[ ! -f $SERVER/boot/sta
         echo
 
         for i in ${serverdirinfo[@]}
-        do  
-        
+        do
+
             servername=$(echo ${i} | sed 's/+@+/ /g' | awk '{print $1}')
             serverdir=$(echo ${i} | sed 's/+@+/ /g' | awk '{print $2}')
-        
+
             printf "%3d  %s" $((++line)) $servername
-            
+
             for ((space=$(($maxservername-${#servername}+5)); space>0; space--))
             do
 
                 printf " "
 
             done
-            
+
             printf "%s\n" $(echo $serverdir | sed "s@/home/$USER/@@g" | sed "s@$servername@@g")
 
         done
@@ -226,7 +226,7 @@ fi
 if [ -z $AGENT ] || [ $ChangeConditions -eq 1 ] || [ ! -f $AGENT/library/rescue/adf/adf-core.jar ]; then
 
     agentdirinfo=(`find ~/ -maxdepth 4 -type d -name ".*" -prune -o -type f -print | grep config/module.cfg | sed 's@/config/module.cfg@@g'`) &>/dev/null
-    
+
     original_clear
 
     if [ ${#agentdirinfo[@]} -eq 0 ]; then
@@ -243,7 +243,7 @@ if [ -z $AGENT ] || [ $ChangeConditions -eq 1 ] || [ ! -f $AGENT/library/rescue/
         #エージェント名+ディレクトリ+文字数
         count=0
         for i in ${agentdirinfo[@]}; do
-        
+
             agentname=`echo $i | sed 's@/@ @g' | awk '{print $NF}'`
 
             agentdirinfo[$count]=$agentname"+@+"$i"+@+"${#agentname}
@@ -251,7 +251,7 @@ if [ -z $AGENT ] || [ $ChangeConditions -eq 1 ] || [ ! -f $AGENT/library/rescue/
             count=$(($count+1))
 
         done
-        
+
         #文字数最大値取得
         maxagentname=`echo "${agentdirinfo[*]}" | sed 's/+@+/ /g' | awk '{if(m<$3) m=$3} END{print m}'`
 
@@ -269,16 +269,16 @@ if [ -z $AGENT ] || [ $ChangeConditions -eq 1 ] || [ ! -f $AGENT/library/rescue/
 
             agentname=`echo ${i} | sed 's/+@+/ /g' | awk '{print $1}'`
             agentdir=`echo ${i} | sed 's/+@+/ /g' | awk '{print $2}'`
-        
+
             printf "%3d  %s" $((++line)) $agentname
-            
+
             for ((space=$(($maxagentname-${#agentname}+5)); space>0; space--))
             do
 
                 printf " "
 
             done
-            
+
             printf "%s\n" `echo $agentdir | sed "s@/home/$USER/@@g" | sed "s@$agentname@@g"`
 
         done
@@ -333,8 +333,8 @@ if [ ! -f $SERVER/$MAP/scenario.xml ] || [ $ChangeConditions -eq 1 ] || [ -z $MA
 
     mapdirinfo=(`find $SERVER/maps -name scenario.xml | sed 's@scenario.xml@@g'`)
 
-    original_clear  
-    
+    original_clear
+
     #エラーチェック
     if [ ${#mapdirinfo[@]} -eq 0 ]; then
 
@@ -429,7 +429,7 @@ if [ ! -f $SERVER/$MAP/scenario.xml ] || [ $ChangeConditions -eq 1 ] || [ -z $MA
                     echo "デフォルトの設定が不正確です。0以外を入力してください。"
 
                 fi
-            
+
             else
 
                 echo "もう一度入力してください。"

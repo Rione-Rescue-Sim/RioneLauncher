@@ -1,8 +1,8 @@
 #!/bin/bash
 
-AGENT="/git/rionerescue"
+AGENT="/rionerescue"
 
-KILL="/git/rcrs-server/boot/"
+KILL="/rcrs-server/boot/"
 
 # /////////////////////////////////////////////////////////////////////////////////////////////
 # 以下処理部分
