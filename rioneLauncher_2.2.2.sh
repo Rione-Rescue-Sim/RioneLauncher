@@ -1474,7 +1474,6 @@ while true; do
             echo
 
             sleep 3
-            kill_docker_gnome-terminal
             killcommand
             sync
             sleep 5
