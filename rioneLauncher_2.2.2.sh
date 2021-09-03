@@ -1075,7 +1075,7 @@ while true; do
                         kill_docker_gnome-terminal
                         continue
 
-                    elif
+                    else
 
                         break
 
