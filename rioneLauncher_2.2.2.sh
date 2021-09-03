@@ -1123,6 +1123,7 @@ while true; do
                 echo
                 echo -n "  コンパイル中..."
                 bash compile.sh >$LOCATION/agent.log 2>&1
+                echo "$LINENO gnome-terminal: $?"
             else
                 echo
                 echo -n "  Ready..."
@@ -1132,10 +1133,12 @@ while true; do
             if [[ -f 'start.sh' ]]; then
 
                 bash start.sh -1 -1 -1 -1 -1 -1 localhost >>$LOCATION/agent.log 2>&1 &
+                echo "$LINENO gnome-terminal: $?"
 
             else
 
                 bash ./launch.sh -all -local >>$LOCATION/agent.log 2>&1 &
+                echo "$LINENO gnome-terminal: $?"
 
             fi
 
