@@ -1149,12 +1149,10 @@ while true; do
             if [[ -f 'start.sh' ]]; then
 
                 bash start.sh -1 -1 -1 -1 -1 -1 localhost >>$LOCATION/agent.log 2>&1 &
-                echo "$LINENO gnome-terminal: $?"
 
             else
 
                 bash ./launch.sh -all -local >>$LOCATION/agent.log 2>&1 &
-                echo "$LINENO gnome-terminal: $?"
 
             fi
 
