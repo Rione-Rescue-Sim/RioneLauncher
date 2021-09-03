@@ -1050,29 +1050,38 @@ while true; do
             #サーバー起動
             if [ $os = "Linux" ]; then
 
-                # gnome-terminal --tab -x bash -c "
-                gnome-terminal -x bash -c "
+                while true; do
 
-                    #[C+ctrl]検知
-                    trap 'last2' {1,2,3}
-                    last2(){
-                        echo -en "\x01" > $LOCATION/.signal
-                        exit 1
-                    }
+                    # gnome-terminal --tab -x bash -c "
+                    gnome-terminal -x bash -c "
 
-                    bash $START_LAUNCH -m ../$MAP/ -c ../$(echo $CONFIG | sed "s@$SERVER/@@g" | sed 's@collapse.cfg@@g') 2>&1 | tee $LOCATION/server.log
+                        #[C+ctrl]検知
+                        trap 'last2' {1,2,3}
+                        last2(){
+                            echo -en "\x01" > $LOCATION/.signal
+                            exit 1
+                        }
 
-                    read waitserver
+                        bash $START_LAUNCH -m ../$MAP/ -c ../$(echo $CONFIG | sed "s@$SERVER/@@g" | sed 's@collapse.cfg@@g') 2>&1 | tee $LOCATION/server.log
 
-                "&
+                        read waitserver
 
-                sleep 1
+                    "&
 
-                if [ ! -s $LOCATION/server.log ]; then
+                    sleep 1
 
-                    echo "$LINENO [TEST]"
+                    if [ ! -s $LOCATION/server.log ]; then
 
-                fi
+                        kill_docker_gnome-terminal
+                        continue
+
+                    elif
+
+                        break
+
+                    fi
+
+                done
 
             else
 
