@@ -134,7 +134,7 @@ killcommand() {
 kill_docker_gnome-terminal(){
     # ターミナルに関するプロセスをすべてkill
     # pgrepなどを使わずに回りくどい書き方をしているのはkillの対象がターミナルなのでフィルタを厳密にするため
-    temp_kill_pid=$(ps -ef | grep dbus | grep ${DOCKER_USER_NAME} | awk '{print $2}')
+    local temp_kill_pid=$(ps -ef | grep dbus | grep ${DOCKER_USER_NAME} | awk '{print $2}')
     if [[ -n ${temp_kill_pid} ]]; then
 
         kill -9 ${temp_kill_pid}
@@ -158,6 +158,8 @@ kill_docker_gnome-terminal(){
         kill -9 ${temp_kill_pid}
 
     fi
+
+    sleep 5
     unset temp_kill_pid
 }
 
@@ -938,6 +940,52 @@ while true; do
     scores=()
     MaxDigitScore=0 #スコアの桁数の最大値を保存
 
+    function server_set(){
+        #サーバー起動
+        if [ $os = "Linux" ]; then
+
+            # gnome-terminal --tab -x bash -c "
+            gnome-terminal -x bash -c "
+
+                #[C+ctrl]検知
+                trap 'last2' {1,2,3}
+                last2(){
+                    echo -en "\x01" > $LOCATION/.signal
+                    exit 1
+                }
+
+                bash $START_LAUNCH -m ../$MAP/ -c ../$(echo $CONFIG | sed "s@$SERVER/@@g" | sed 's@collapse.cfg@@g') 2>&1 | tee $LOCATION/server.log
+
+                read waitserver
+
+            " &
+
+        else
+
+            bash $START_LAUNCH -m ../$MAP/ -c ../$(echo $CONFIG | sed "s@$SERVER/@@g" | sed 's@collapse.cfg@@g') >$LOCATION/server.log &
+
+        fi
+
+        #サーバー待機
+        echo " ▼ サーバー起動中..."
+        echo
+        echo "  ※ 以下にエラーが出ることがありますが無視して構いません"
+
+        while true; do
+
+            kill_subwindow
+
+            if [ ! $(grep -c "waiting for misc to connect..." $LOCATION/server.log) -eq 0 ]; then
+
+                sleep 3
+
+                break
+
+            fi
+
+        done
+    }
+
     # ///////////////////////////////////////////////////////////////////////////////////////////
     # マップ内ループ
     # レスキューシミュレーションの実行フラグ　デバッグ用
@@ -988,49 +1036,7 @@ while true; do
             sed -i "s/$(cat $START_LAUNCH | grep 'startKernel')/startKernel --nomenu --autorun/g" $START_LAUNCH
             sed -i "s/$(cat $START_LAUNCH | grep 'startSims')/startSims --nogui/g" $START_LAUNCH
 
-            #サーバー起動
-            if [ $os = "Linux" ]; then
-
-                # gnome-terminal --tab -x bash -c "
-                gnome-terminal -x bash -c "
-
-                    #[C+ctrl]検知
-                    trap 'last2' {1,2,3}
-                    last2(){
-                        echo -en "\x01" > $LOCATION/.signal
-                        exit 1
-                    }
-
-                    bash $START_LAUNCH -m ../$MAP/ -c ../$(echo $CONFIG | sed "s@$SERVER/@@g" | sed 's@collapse.cfg@@g') 2>&1 | tee $LOCATION/server.log
-
-                    read waitserver
-
-                " &
-
-            else
-
-                bash $START_LAUNCH -m ../$MAP/ -c ../$(echo $CONFIG | sed "s@$SERVER/@@g" | sed 's@collapse.cfg@@g') >$LOCATION/server.log &
-
-            fi
-
-            #サーバー待機
-            echo " ▼ サーバー起動中..."
-            echo
-            echo "  ※ 以下にエラーが出ることがありますが無視して構いません"
-
-            while true; do
-
-                kill_subwindow
-
-                if [ ! $(grep -c "waiting for misc to connect..." $LOCATION/server.log) -eq 0 ]; then
-
-                    sleep 3
-
-                    break
-
-                fi
-
-            done
+            server_set
 
             original_clear
 
@@ -1213,41 +1219,56 @@ while true; do
                 echo -e "   PoliceForce |"$(lording_ber $(($policeforce_read * 100 / ${maxlist[5]})) 5) "\e[m|" $(proportion $(($policeforce_read * 100 / ${maxlist[5]})))
                 echo
 
-                if [ $(grep -c "Loader is not found." agent.log) -eq 1 ]; then
 
-                    echo "[ERROR] $LINENO"
-                    errerbreak
 
-                fi
+                max=5
+                for ((i=0; i < $max; i++)); do
 
-                if [ ! $(grep -c "Done connecting to server" agent.log) -eq 0 ]; then
-
-                    if [ $(cat agent.log | grep "Done connecting to server" | awk '{print $6}' | sed -e 's/(//g') -eq 0 ]; then
+                    if [ $(grep -c "Loader is not found." agent.log) -eq 1 ]; then
 
                         echo "[ERROR] $LINENO"
-                        echo $(cat agent.log)
-                        echo $(cat server.log)
-                        ps -e
-                        errerbreak
+                        echo "サーバを再起動します"
+                        kill_docker_gnome-terminal
+                        server_set
+                        continue
 
                     fi
 
-                    if [ $(cat agent.log | grep "Done connecting to server" | awk '{print $6}' | sed -e 's/(//g') -gt 0 ]; then
+                    if [ ! $(grep -c "Done connecting to server" agent.log) -eq 0 ]; then
 
-                        if [[ $START_LAUNCH = "start.sh" ]]; then
+                        if [ $(cat agent.log | grep "Done connecting to server" | awk '{print $6}' | sed -e 's/(//g') -eq 0 ]; then
 
-                            [ ! $(grep -c "failed: No more agents" server.log) -eq 1 ] && continue
+                            echo "[ERROR] $LINENO"
+                             echo "サーバを再起動します"
+                            kill_docker_gnome-terminal
+                            server_set
+                            continue
 
                         fi
 
-                        echo
-                        echo
+                        if [ $(cat agent.log | grep "Done connecting to server" | awk '{print $6}' | sed -e 's/(//g') -gt 0 ]; then
+
+                            if [[ $START_LAUNCH = "start.sh" ]]; then
+
+                                [ ! $(grep -c "failed: No more agents" server.log) -eq 1 ] && continue
+
+                            fi
+
+                            echo
+                            echo
+
+                            break
+
+                        fi
+
+                    else
 
                         break
 
                     fi
 
-                fi
+                done
+                unset max
 
                 sleep 1
 
