@@ -138,7 +138,7 @@ kill_docker_gnome-terminal(){
     if [[ -n ${temp_kill_pid} ]]; then
 
         # -q: プロセスが存在しない場合にメッセージを表示しない
-        kill ${temp_kill_pid}
+        kill ${temp_kill_pid} 2>/deb/null
 
     fi
     temp_kill_pid=$(ps -ef | grep gvfsd | grep ${DOCKER_USER_NAME} | awk '{print $2}')
