@@ -447,7 +447,7 @@ if [ ! -f $SERVER/$MAP/scenario.xml ] || [ $ChangeConditions -eq 1 ] || [ -z $MA
 
 fi
 
-gnome-terminal -- bash "__pre_calculation.sh"
+env LC_ALL=ja_JP.eucJP LANGUAGE=ja_JP.eucJP gnome-terminal -- bash "__pre_calculation.sh"
 
 cd $SERVER
 cd "boot"
