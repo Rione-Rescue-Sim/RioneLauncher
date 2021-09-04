@@ -86,6 +86,8 @@ echo "起動完了"
 
 sleep 5
 
+chmod u+x gradlew
+
 bash compile.sh ; bash launch.sh -t 1,0,1,0,1,0 -h localhost -pre 1 & APID=$! ; sleep 120 ; kill $APID
 # bash compile.sh ; bash launch.sh -t 1,0,1,0,1,0 -h localhost -pre 1 & APID=$! ; sleep 10 ; kill $APID
 echo "killのエラーは仕様です"
