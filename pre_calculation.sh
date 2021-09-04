@@ -1,10 +1,10 @@
 #!/bin/bash
 
-SERVER="/rcrs-server_latest"
+SERVER="rcrs-server"
 
-AGENT="/rionerescue"
+AGENT="rionerescue"
 
-KILL="/rcrs-server_latest/boot/"
+KILL="rcrs-server/boot/"
 
 MAP="maps/gml/test/map"
 
@@ -68,8 +68,7 @@ last(){
     echo
     echo " 事前計算を中断します...Σ(ﾟДﾟﾉ)ﾉ"
     echo
-    cd $KILL
-    ./kill.sh
+    cd $KILL; ./kill.sh
     kill -9 $(ps aux | grep "__pre_calculation.sh" | grep -v "gnome-terminal" | awk '{print $2}') &>/dev/null
     kill -9 $(ps aux | grep "pre_calculation.sh" | grep -v "gnome-terminal" | awk '{print $2}') &>/dev/null
     exit 1
@@ -101,9 +100,9 @@ ChangeConditions=1
 
 # ユーザディレクトリまでのパスを取得
 ROOT_PATH=$(cd; pwd)
-SERVER=$ROOT_PATH$SERVER
-AGENT=$ROOT_PATH$AGENT
-KILL=$ROOT_PATH$KILL
+SERVER=$(find ~/ -name $SERVER -typed d 2>/dev/null)
+AGENT=$(find ~/ -name $AGENT -type d 2>/dev/null | grep -v "docker")
+KILL=$(find ~/ -name boot -type d 2>/dev/null | grep "$KILL")
 
 
 echo
@@ -447,7 +446,7 @@ if [ ! -f $SERVER/$MAP/scenario.xml ] || [ $ChangeConditions -eq 1 ] || [ -z $MA
 
 fi
 
-env LC_ALL=ja_JP.eucJP LANGUAGE=ja_JP.eucJP gnome-terminal -- bash "__pre_calculation.sh"
+gnome-terminal -- bash "__pre_calculation.sh"
 
 cd $SERVER
 cd "boot"

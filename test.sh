@@ -1,15 +1,14 @@
 # !/bin/bash
-ROOT_PATH=$(
-    cd
-    pwd
-)
-CURRENT_PATH=$(pwd)
+AGENT=rionerescue
+KILL="rcrs-server/boot"
 
-temp1=1\n2\n3
-temp2=9
 
-echo temp1: $temp1
-echo temp2: $temp2
+AGENT=$(find ~/ -name ${AGENT} -type d 2>/dev/null | grep -v "docker")
+KILL=$(find ~/ -name boot -type d 2>/dev/null | grep "${KILL}")
 
-temp1=${temp1}\n${temp2}
-echo temp1: $temp1
+echo "AGENT: $AGENT"
+echo "AGENT: $KILL"
+
+cd $KILL
+pwd
+

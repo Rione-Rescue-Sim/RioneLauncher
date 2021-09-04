@@ -1,8 +1,8 @@
 #!/bin/bash
 
-AGENT="/rionerescue"
+AGENT="rionerescue"
 
-KILL="/rcrs-server/boot/"
+KILL="rcrs-server/boot"
 
 # /////////////////////////////////////////////////////////////////////////////////////////////
 # 以下処理部分
@@ -11,8 +11,8 @@ LOCATION=$(cd $(dirname $0); pwd)
 
 # ユーザディレクトリまでのパスを取得
 ROOT_PATH=$(cd; pwd)
-AGENT=$ROOT_PATH$AGENT
-KILL=$ROOT_PATH$KILL
+AGENT=$(find ~/ -name ${AGENT} -type d 2>/dev/null | grep -v "docker")
+KILL=$(find ~/ -name boot -type d 2>/dev/null | grep "${KILL}")
 
 
 cd $AGENT
