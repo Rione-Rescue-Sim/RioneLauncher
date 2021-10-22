@@ -1331,18 +1331,6 @@ while true; do
                                     continue
 
                                 fi
-                                if [ ! $(grep -c "Done connecting to server" agent.log) -eq 0 ]; then
-
-                                    if [ $(cat agent.log | grep "Done connecting to server" | awk '{print $6}' | sed -e 's/(//g') -eq 0 ]; then
-
-                                        echo -e "[ERROR]\n\t$LINENO サーバを再起動します"
-                                        kill_docker_gnome-terminal
-                                        sleep 3
-                                        continue
-
-                                    fi
-
-                                fi
 
                                 break
 
