@@ -1073,11 +1073,9 @@ while true; do
                         sleep 3
                         continue
 
-                    else
-
-                        break
-
                     fi
+
+                    break
 
                 done
 
@@ -1302,8 +1300,59 @@ while true; do
 
                     if [ $(cat agent.log | grep "Done connecting to server" | awk '{print $6}' | sed -e 's/(//g') -eq 0 ]; then
 
-                        echo "[ERROR] $LINENO"
-                        errerbreak
+                        #サーバー起動
+                        if [ $os = "Linux" ]; then
+
+                            while true; do
+
+                                # gnome-terminal --tab -x bash -c "
+                                gnome-terminal -x bash -c "
+
+                                    #[C+ctrl]検知
+                                    trap 'last2' {1,2,3}
+                                    last2(){
+                                        echo -en "\x01" > $LOCATION/.signal
+                                        exit 1
+                                    }
+
+                                    bash $START_LAUNCH -m ../$MAP/ -c ../$(echo $CONFIG | sed "s@$SERVER/@@g" | sed 's@collapse.cfg@@g') 2>&1 | tee $LOCATION/server.log
+
+                                    read waitserver
+
+                                "&
+
+                                sleep 1
+
+                                if [ ! -s $LOCATION/server.log ]; then
+
+                                    echo -e "[ERROR]\n\t$LINENO サーバを再起動します"
+                                    kill_docker_gnome-terminal
+                                    sleep 3
+                                    continue
+
+                                fi
+                                if [ ! $(grep -c "Done connecting to server" agent.log) -eq 0 ]; then
+
+                                    if [ $(cat agent.log | grep "Done connecting to server" | awk '{print $6}' | sed -e 's/(//g') -eq 0 ]; then
+
+                                        echo -e "[ERROR]\n\t$LINENO サーバを再起動します"
+                                        kill_docker_gnome-terminal
+                                        sleep 3
+                                        continue
+
+                                    fi
+
+                                fi
+
+                                break
+
+                            done
+
+                        else
+
+                            bash $START_LAUNCH -m ../$MAP/ -c ../$(echo $CONFIG | sed "s@$SERVER/@@g" | sed 's@collapse.cfg@@g') >$LOCATION/server.log &
+
+                        fi
 
                     fi
 
