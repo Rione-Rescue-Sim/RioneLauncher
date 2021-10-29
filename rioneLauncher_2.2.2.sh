@@ -70,8 +70,7 @@ LOCATION=$(
     pwd
 )
 phase=0
-master_url="https://raw.githubusercontent.com/taka0628/RioneLauncher/main/rioneLauncher_2.2.2.sh"
-# master_url="https://raw.githubusercontent.com/taka0628/RioneLauncher/main/test.sh"
+master_url="https://raw.githubusercontent.com/Rione-Rescue-Sim/RioneLauncher/main/rioneLauncher_2.2.2.sh"
 
 echo $0
 echo $LOCATION
