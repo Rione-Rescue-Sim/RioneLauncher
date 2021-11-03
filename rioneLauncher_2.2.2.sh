@@ -181,30 +181,30 @@ function server_start(){
 kill_docker_gnome-terminal(){
     # ターミナルに関するプロセスをすべてkill
     # pgrepなどを使わずに回りくどい書き方をしているのはkillの対象がターミナルなのでフィルタを厳密にするため
-    local temp_kill_pid=$(ps -ef | grep dbus | grep ${DOCKER_USER_NAME} | awk '{print $2}')
+    local temp_kill_pid=$(ps -au | grep "dbus" | grep ${DOCKER_USER_NAME} | grep -v "grep"| awk '{print $2}')
     if [[ -n ${temp_kill_pid} ]]; then
 
         kill ${temp_kill_pid}
 
     fi
-    temp_kill_pid=$(ps -ef | grep gvfsd | grep ${DOCKER_USER_NAME} | awk '{print $2}')
-    if [[ -n ${temp_kill_pid} ]]; then
+    # temp_kill_pid=$(ps -ef | grep gvfsd | grep ${DOCKER_USER_NAME} | awk '{print $2}')
+    # if [[ -n ${temp_kill_pid} ]]; then
 
-        kill ${temp_kill_pid}
+    #     kill ${temp_kill_pid}
 
-    fi
-    temp_kill_pid=$(ps -ef | grep dconf-service | grep ${DOCKER_USER_NAME} | awk '{print $2}')
-    if [[ -n ${temp_kill_pid} ]]; then
+    # fi
+    # temp_kill_pid=$(ps -ef | grep dconf-service | grep ${DOCKER_USER_NAME} | awk '{print $2}')
+    # if [[ -n ${temp_kill_pid} ]]; then
 
-        kill ${temp_kill_pid}
+    #     kill ${temp_kill_pid}
 
-    fi
-    temp_kill_pid=$(ps -ef | grep gnome-terminal-server | grep ${DOCKER_USER_NAME} | awk '{print $2}')
-    if [[ -n ${temp_kill_pid} ]]; then
+    # fi
+    # temp_kill_pid=$(ps -ef | grep gnome-terminal-server | grep ${DOCKER_USER_NAME} | awk '{print $2}')
+    # if [[ -n ${temp_kill_pid} ]]; then
 
-        kill ${temp_kill_pid}
+    #     kill ${temp_kill_pid}
 
-    fi
+    # fi
 
     sleep 5
     unset temp_kill_pid
