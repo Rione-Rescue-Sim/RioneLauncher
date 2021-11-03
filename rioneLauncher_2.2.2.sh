@@ -130,6 +130,54 @@ killcommand() {
 
 }
 
+function server_start(){
+    touch agent.log
+    touch server.log
+
+    #サーバー起動
+    if [ $os = "Linux" ]; then
+
+        # gnome-terminal --tab -x bash -c "
+        gnome-terminal -x bash -c "
+
+            #[C+ctrl]検知
+            trap 'last2' {1,2,3}
+            last2(){
+                echo -en "\x01" > $LOCATION/.signal
+                exit 1
+            }
+
+            bash $START_LAUNCH -m ../$MAP/ -c ../$(echo $CONFIG | sed "s@$SERVER/@@g" | sed 's@collapse.cfg@@g') 2>&1 | tee $LOCATION/server.log
+
+            read waitserver
+
+        " &
+
+    else
+
+        bash $START_LAUNCH -m ../$MAP/ -c ../$(echo $CONFIG | sed "s@$SERVER/@@g" | sed 's@collapse.cfg@@g') >$LOCATION/server.log &
+
+    fi
+
+    #サーバー待機
+    echo " ▼ サーバー起動中..."
+    echo
+    echo "  ※ 以下にエラーが出ることがありますが無視して構いません"
+
+    while true; do
+
+        if [ ! $(grep -c "waiting for misc to connect..." $LOCATION/server.log) -eq 0 ]; then
+
+            sleep 3
+
+            break
+
+        fi
+
+    done
+    sleep 3
+}
+
 kill_docker_gnome-terminal(){
     # ターミナルに関するプロセスをすべてkill
     # pgrepなどを使わずに回りくどい書き方をしているのはkillの対象がターミナルなのでフィルタを厳密にするため
@@ -939,58 +987,6 @@ while true; do
     scores=()
     MaxDigitScore=0 #スコアの桁数の最大値を保存
 
-    function server_restart(){
-
-        rm server.log &>/dev/null
-        rm agent.log &>/dev/null
-
-        touch agent.log
-        touch server.log
-
-        #サーバー起動
-        if [ $os = "Linux" ]; then
-
-            # gnome-terminal --tab -x bash -c "
-            gnome-terminal -x bash -c "
-
-                #[C+ctrl]検知
-                trap 'last2' {1,2,3}
-                last2(){
-                    echo -en "\x01" > $LOCATION/.signal
-                    exit 1
-                }
-
-                bash $START_LAUNCH -m ../$MAP/ -c ../$(echo $CONFIG | sed "s@$SERVER/@@g" | sed 's@collapse.cfg@@g') 2>&1 | tee $LOCATION/server.log
-
-                read waitserver
-
-            " &
-
-        else
-
-            bash $START_LAUNCH -m ../$MAP/ -c ../$(echo $CONFIG | sed "s@$SERVER/@@g" | sed 's@collapse.cfg@@g') >$LOCATION/server.log &
-
-        fi
-
-        #サーバー待機
-        echo " ▼ サーバー起動中..."
-        echo
-        echo "  ※ 以下にエラーが出ることがありますが無視して構いません"
-
-        while true; do
-
-            if [ ! $(grep -c "waiting for misc to connect..." $LOCATION/server.log) -eq 0 ]; then
-
-                sleep 3
-
-                break
-
-            fi
-
-        done
-        sleep 3
-    }
-
     # ///////////////////////////////////////////////////////////////////////////////////////////
     # マップ内ループ
     # レスキューシミュレーションの実行フラグ　デバッグ用
@@ -1042,69 +1038,7 @@ while true; do
             sed -i "s/$(cat $START_LAUNCH | grep 'startSims')/startSims --nogui/g" $START_LAUNCH
 
 
-            #サーバー起動
-            if [ $os = "Linux" ]; then
-
-                while true; do
-
-                    # gnome-terminal --tab -x bash -c "
-                    gnome-terminal -x bash -c "
-
-                        #[C+ctrl]検知
-                        trap 'last2' {1,2,3}
-                        last2(){
-                            echo -en "\x01" > $LOCATION/.signal
-                            exit 1
-                        }
-
-                        bash $START_LAUNCH -m ../$MAP/ -c ../$(echo $CONFIG | sed "s@$SERVER/@@g" | sed 's@collapse.cfg@@g') 2>&1 | tee $LOCATION/server.log
-
-                        read waitserver
-
-                    "&
-
-                    sleep 1
-
-                    if [ ! -s $LOCATION/server.log ]; then
-
-                        echo -e "[ERROR]\n\t$LINENO サーバを再起動します"
-                        kill_docker_gnome-terminal
-                        sleep 3
-                        continue
-
-                    fi
-
-                    break
-
-                done
-
-            else
-
-                bash $START_LAUNCH -m ../$MAP/ -c ../$(echo $CONFIG | sed "s@$SERVER/@@g" | sed 's@collapse.cfg@@g') >$LOCATION/server.log &
-
-            fi
-
-
-
-            #サーバー待機
-            echo " ▼ サーバー起動中..."
-            echo
-            echo "  ※ 以下にエラーが出ることがありますが無視して構いません"
-
-            while true; do
-
-                kill_subwindow
-
-                if [ ! $(grep -c "waiting for misc to connect..." $LOCATION/server.log) -eq 0 ]; then
-
-                    sleep 3
-
-                    break
-
-                fi
-
-            done
-            sleep 3
+            server_start
 
             original_clear
 
@@ -1300,47 +1234,8 @@ while true; do
                     if [ $(cat agent.log | grep "Done connecting to server" | awk '{print $6}' | sed -e 's/(//g') -eq 0 ]; then
 
                         echo -e "[ERROR]\n\t$LINENO サーバを再起動します"
-                        #サーバー起動
-                        if [ $os = "Linux" ]; then
-
-                            while true; do
-
-                                # gnome-terminal --tab -x bash -c "
-                                gnome-terminal -x bash -c "
-
-                                    #[C+ctrl]検知
-                                    trap 'last2' {1,2,3}
-                                    last2(){
-                                        echo -en "\x01" > $LOCATION/.signal
-                                        exit 1
-                                    }
-
-                                    bash $START_LAUNCH -m ../$MAP/ -c ../$(echo $CONFIG | sed "s@$SERVER/@@g" | sed 's@collapse.cfg@@g') 2>&1 | tee $LOCATION/server.log
-
-                                    read waitserver
-
-                                "&
-
-                                sleep 1
-
-                                if [ ! -s $LOCATION/server.log ]; then
-
-                                    echo -e "[ERROR]\n\t$LINENO サーバを再起動します"
-                                    kill_docker_gnome-terminal
-                                    sleep 3
-                                    continue
-
-                                fi
-
-                                break
-
-                            done
-
-                        else
-
-                            bash $START_LAUNCH -m ../$MAP/ -c ../$(echo $CONFIG | sed "s@$SERVER/@@g" | sed 's@collapse.cfg@@g') >$LOCATION/server.log &
-
-                        fi
+                        kill_docker_gnome-terminal
+                        server_start
 
                     fi
 
