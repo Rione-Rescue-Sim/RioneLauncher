@@ -991,6 +991,8 @@ while true; do
     # マップ内ループ
     # レスキューシミュレーションの実行フラグ　デバッグ用
     canExeSimuration="true"
+    rm server.log &>/dev/null
+    rm agent.log &>/dev/null
     if [[ $canExeSimuration = "true" ]]; then
 
         for ((loop = 0; loop < $LOOP; loop++)); do
@@ -1009,9 +1011,6 @@ while true; do
             fi
 
             original_clear
-
-            rm server.log &>/dev/null
-            rm agent.log &>/dev/null
 
             touch agent.log
             touch server.log
@@ -1236,6 +1235,9 @@ while true; do
                         echo -e "[ERROR]\n\t$LINENO サーバを再起動します"
                         kill_docker_gnome-terminal
                         server_start
+                        rm server.log &>/dev/null
+                        rm agent.log &>/dev/null
+                        continue
 
                     fi
 
