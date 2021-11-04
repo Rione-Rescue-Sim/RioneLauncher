@@ -134,30 +134,62 @@ function server_start(){
     touch agent.log
     touch server.log
 
-    #サーバー起動
-    if [ $os = "Linux" ]; then
+    local DOCKER_SERVER_LOG=dockerServerLog.txt
+    local error_cnt=0
 
-        # gnome-terminal --tab -x bash -c "
-        gnome-terminal -x bash -c "
+    # gnome-terminalが起動しない場合があるため、確実に起動を行う
+    while true; do
+        rm ${DOCKER_SERVER_LOG}
+        touch ${DOCKER_SERVER_LOG}
 
-            #[C+ctrl]検知
-            trap 'last2' {1,2,3}
-            last2(){
-                echo -en "\x01" > $LOCATION/.signal
-                exit 1
-            }
+        #サーバー起動
+        if [ $os = "Linux" ]; then
 
-            bash $START_LAUNCH -m ../$MAP/ -c ../$(echo $CONFIG | sed "s@$SERVER/@@g" | sed 's@collapse.cfg@@g') 2>&1 | tee $LOCATION/server.log
+            # gnome-terminal --tab -x bash -c "
+            gnome-terminal -x bash -c "
 
-            read waitserver
+                echo -n "serverStart" > ${DOCKER_SERVER_LOG}
 
-        " &
+                #[C+ctrl]検知
+                trap 'last2' {1,2,3}
+                last2(){
+                    echo -en "\x01" > $LOCATION/.signal
+                    exit 1
+                }
 
-    else
+                bash $START_LAUNCH -m ../$MAP/ -c ../$(echo $CONFIG | sed "s@$SERVER/@@g" | sed 's@collapse.cfg@@g') 2>&1 | tee $LOCATION/server.log
 
-        bash $START_LAUNCH -m ../$MAP/ -c ../$(echo $CONFIG | sed "s@$SERVER/@@g" | sed 's@collapse.cfg@@g') >$LOCATION/server.log &
+                read waitserver
 
-    fi
+            " &
+
+        else
+
+            bash $START_LAUNCH -m ../$MAP/ -c ../$(echo $CONFIG | sed "s@$SERVER/@@g" | sed 's@collapse.cfg@@g') >$LOCATION/server.log &
+
+        fi
+
+        if [[ ${error_cnt} -gt 10 ]]; then
+
+            last
+
+        fi
+
+        if [[ ! -z $(cat ${DOCKER_SERVER_LOG} | grep "serverStart") ]]; then
+
+            # gnome-terminalの起動確認
+            break
+
+        else
+
+            kill_docker_gnome-terminal
+            error_cnt=error_cnt+1
+            sleep 3
+            continue
+
+        fi
+
+    done
 
     #サーバー待機
     echo " ▼ サーバー起動中..."
