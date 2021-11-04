@@ -1262,17 +1262,6 @@ while true; do
 
                 if [ ! $(grep -c "Done connecting to server" agent.log) -eq 0 ]; then
 
-                    if [ $(cat agent.log | grep "Done connecting to server" | awk '{print $6}' | sed -e 's/(//g') -eq 0 ]; then
-
-                        echo -e "[ERROR]\n\t$LINENO サーバを再起動します"
-                        kill_docker_gnome-terminal
-                        server_start
-                        rm server.log &>/dev/null
-                        rm agent.log &>/dev/null
-                        continue
-
-                    fi
-
                     if [ $(cat agent.log | grep "Done connecting to server" | awk '{print $6}' | sed -e 's/(//g') -gt 0 ]; then
 
                         if [[ $START_LAUNCH = "start.sh" ]]; then
