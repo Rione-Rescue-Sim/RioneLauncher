@@ -135,7 +135,7 @@ function server_start(){
     touch server.log
 
     local DOCKER_SERVER_LOG=dockerServerLog.txt
-    local error_cnt=0
+    error_cnt=0
 
     # gnome-terminalが起動しない場合があるため、確実に起動を行う
     while true; do
