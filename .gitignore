@@ -1,5 +1,6 @@
 test.sh
 *.log
+*.txt
 test.sh
 devLauncher.sh
 .gradle/4.4.1/fileChanges/last-build.bin
