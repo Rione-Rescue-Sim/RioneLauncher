@@ -139,8 +139,9 @@ function server_start(){
 
     # gnome-terminalが起動しない場合があるため、確実に起動を行う
     while true; do
-        rm ${DOCKER_SERVER_LOG}
+        rm ${DOCKER_SERVER_LOG} 2>/dev/null
         touch ${DOCKER_SERVER_LOG}
+        sleep 1
 
         #サーバー起動
         if [ $os = "Linux" ]; then
