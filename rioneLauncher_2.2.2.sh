@@ -170,7 +170,7 @@ function server_start(){
 
         fi
 
-        if [[ ${error_cnt} -gt 10 ]]; then
+        if [[ $(error_cnt) -gt 10 ]]; then
 
             last
 
@@ -184,7 +184,7 @@ function server_start(){
         else
 
             kill_docker_gnome-terminal
-            error_cnt=error_cnt+1
+            error_cnt=$(error_cnt)+1
             sleep 3
             continue
 
