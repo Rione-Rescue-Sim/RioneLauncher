@@ -149,7 +149,7 @@ function server_start(){
             # gnome-terminal --tab -x bash -c "
             gnome-terminal -x bash -c "
 
-                echo -n "serverStart" > ${DOCKER_SERVER_LOG}
+                echo -n 'serverStart' > dockerServerLog.txt
 
                 #[C+ctrl]検知
                 trap 'last2' {1,2,3}
@@ -170,11 +170,15 @@ function server_start(){
 
         fi
 
-        if [[ $(error_cnt) -gt 10 ]]; then
+        if [[ $error_cnt -gt 10 ]]; then
 
+            echo "[ERROR] $LINENO"
+            echo "サーバが起動できませんでした"
             last
 
         fi
+
+        sleep 1
 
         if [[ ! -z $(cat ${DOCKER_SERVER_LOG} | grep "serverStart") ]]; then
 
@@ -182,9 +186,10 @@ function server_start(){
             break
 
         else
-
+            echo "[ERROR] $LINENO"
+            echo "サーバを再起動します"
             kill_docker_gnome-terminal
-            error_cnt=$(error_cnt)+1
+            error_cnt=$error_cnt+1
             sleep 3
             continue
 
