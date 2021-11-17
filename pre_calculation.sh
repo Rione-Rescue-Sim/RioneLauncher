@@ -96,6 +96,81 @@ original_clear(){
     echo -e "\e[0;0H" #カーソルを0行目の0列目に戻す
 }
 
+kill_docker_gnome-terminal(){
+    # ターミナルに関するプロセスをすべてkill
+    # pgrepなどを使わずに回りくどい書き方をしているのはkillの対象がターミナルなのでフィルタを厳密にするため
+    local temp_kill_pid=$(ps -au | grep "dbus" | grep ${DOCKER_USER_NAME} | grep -v "grep"| awk '{print $2}')
+    if [[ -n ${temp_kill_pid} ]]; then
+
+        kill ${temp_kill_pid}
+
+    fi
+
+    sleep 5
+    unset temp_kill_pid
+}
+
+server_start(){
+    touch agent.log
+    touch server.log
+
+    local DOCKER_SERVER_LOG=dockerServerLog.txt
+    error_cnt=0
+
+    # gnome-terminalが起動しない場合があるため、確実に起動を行う
+    while true; do
+        rm ${DOCKER_SERVER_LOG} 2>/dev/null
+        touch ${DOCKER_SERVER_LOG}
+        sleep 1
+
+        #サーバー起動
+        gnome-terminal -- bash "__pre_calculation.sh"
+
+        if [[ $error_cnt -gt 10 ]]; then
+
+            echo "[ERROR] $LINENO"
+            echo "サーバが起動できませんでした"
+            last
+
+        fi
+
+        sleep 1
+
+        if [[ ! -z $(cat ${DOCKER_SERVER_LOG} | grep "serverStart") ]]; then
+
+            # gnome-terminalの起動確認
+            break
+
+        else
+            echo "[ERROR] $LINENO"
+            echo "サーバを再起動します"
+            kill_docker_gnome-terminal
+            error_cnt=$error_cnt+1
+            sleep 3
+            continue
+
+        fi
+
+    done
+
+    #サーバー待機
+    echo " ▼ サーバー起動中..."
+    echo
+
+    while true; do
+
+        if [ ! $(grep -c "waiting for misc to connect..." $LOCATION/server.log) -eq 0 ]; then
+
+            sleep 3
+
+            break
+
+        fi
+
+    done
+    sleep 3
+}
+
 ChangeConditions=1
 
 # ユーザディレクトリまでのパスを取得
@@ -446,7 +521,7 @@ if [ ! -f $SERVER/$MAP/scenario.xml ] || [ $ChangeConditions -eq 1 ] || [ -z $MA
 
 fi
 
-gnome-terminal -- bash "__pre_calculation.sh"
+server_start
 
 cd $SERVER
 cd "boot"
