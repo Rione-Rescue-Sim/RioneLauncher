@@ -126,7 +126,7 @@ server_start(){
         #サーバー起動
         gnome-terminal -x bash -c "
             echo -n 'serverStart' > dockerServerLog.txt
-            __pre_calculation.sh
+            bash __pre_calculation.sh
         "&
 
         if [[ $error_cnt -gt 10 ]]; then
