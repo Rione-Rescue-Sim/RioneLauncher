@@ -160,17 +160,6 @@ server_start(){
     echo " ▼ サーバー起動中..."
     echo
 
-    while true; do
-
-        if [ ! $(grep -c "waiting for misc to connect..." $LOCATION/server.log) -eq 0 ]; then
-
-            sleep 3
-
-            break
-
-        fi
-
-    done
     sleep 3
 }
 
