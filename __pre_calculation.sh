@@ -97,4 +97,5 @@ cd $KILL
 sleep 15
 
 cd $AGENT
+chmod u+x gradlew
 bash launch.sh -all
