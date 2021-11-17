@@ -124,7 +124,10 @@ server_start(){
         sleep 1
 
         #サーバー起動
-        gnome-terminal -- bash "__pre_calculation.sh"
+        gnome-terminal -x bash -c "
+            echo -n 'serverStart' > ${DOCKER_SERVER_LOG}
+            __pre_calculation.sh
+        "&
 
         if [[ $error_cnt -gt 10 ]]; then
 
