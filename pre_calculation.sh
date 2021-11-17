@@ -125,7 +125,7 @@ server_start(){
 
         #サーバー起動
         gnome-terminal -x bash -c "
-            echo -n 'serverStart' > ${DOCKER_SERVER_LOG}
+            echo -n 'serverStart' > dockerServerLog.txt
             __pre_calculation.sh
         "&
 
