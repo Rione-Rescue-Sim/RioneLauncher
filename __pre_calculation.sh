@@ -1,6 +1,6 @@
 #!/bin/bash
 
-AGENT="rionerescue"
+AGENT="RIORescue"
 
 KILL="rcrs-server/boot"
 
