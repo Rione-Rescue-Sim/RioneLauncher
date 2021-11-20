@@ -9,3 +9,5 @@ agent.log
 server.log
 *.csv
 .vscode/
+*.pyc
+__pycashe__/*
