@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from signal import signal
+import serverClass
 import shellComanndClass as shell
 import subprocess
 # ファイル検索
@@ -29,22 +30,10 @@ def kill(signum, frame):
     # subprocess.call(["bash", killFile])
 
 
-def serarchServerDir():
-    serverList = shell.shell(
-        "find ~/ -maxdepth 4 -type d -name '.*' -prune -o -type f -print  | grep jars/rescuecore2.jar").split(sep="\n")
-    print(serverList)
-    # サーバ名のみを抜き出し
-    for i in range(len(serverList)):
-        serverList[i] = serverList[i].replace("/jars/rescuecore2.jar", "")
-        serverList[i] = serverList[i][len(
-            serverList[i]) - len(serverList[i].split(sep="/")[-1]):]
-
-    print(serverList)
-
-
 def main():
     signal.signal(signal.SIGINT, kill)
-    serarchServerDir()
+    server = serverClass.ServerClass()
+    print(server.serverSelect())
 
 
 if __name__ == "__main__":

@@ -1,4 +1,5 @@
 import subprocess
+from typing import Text
 import errorClass as ERROR
 
 
