@@ -32,8 +32,15 @@ def kill(signum, frame):
 
 def main():
     signal.signal(signal.SIGINT, kill)
+    print("st")
     server = serverClass.ServerClass()
-    print(server.serverSelect())
+    server.serverSelect()
+
+    agent = serverClass.agentClass()
+    agent.agentSelect()
+
+    map = serverClass.mapClass()
+    map.mapSelect()
 
 
 if __name__ == "__main__":
