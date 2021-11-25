@@ -2,7 +2,7 @@
 
 from signal import signal
 import serverClass
-import shellComanndClass as shell
+import shellCommandClass as shell
 import subprocess
 # ファイル検索
 import glob
@@ -12,7 +12,7 @@ import os
 import time
 import errorClass as ERROR
 
-global killFilePath
+killFilePath = None
 
 
 def setup():
@@ -21,11 +21,8 @@ def setup():
 
 
 def kill(signum, frame):
-
-    # if killFile.count <= 0:
-    #     print(location)
-
-    print(killFile)
+    if killFilePath != None:
+        shell.sh(killFilePath + "/kill.sh")
     exit(1)
     # subprocess.call(["bash", killFile])
 
@@ -33,14 +30,18 @@ def kill(signum, frame):
 def main():
     signal.signal(signal.SIGINT, kill)
     print("st")
-    server = serverClass.ServerClass()
-    server.serverSelect()
 
-    agent = serverClass.agentClass()
-    agent.agentSelect()
+    try:
+        server = serverClass.ServerClass()
+        server.serverSelect()
 
-    map = serverClass.mapClass()
-    map.mapSelect()
+        server.agentSelect()
+        server.mapSelect()
+        killFilePath = server.getServerPath() + "/boot/"
+        server.start()
+
+    except:
+        kill()
 
 
 if __name__ == "__main__":

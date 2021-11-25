@@ -10,7 +10,6 @@ KILL="rcrs-server/boot"
 LOCATION=$(cd $(dirname $0); pwd)
 
 # ユーザディレクトリまでのパスを取得
-ROOT_PATH=$(cd; pwd)
 AGENT=$(find ~/ -name ${AGENT} -type d 2>/dev/null | grep -v "docker")
 KILL=$(find ~/ -name boot -type d 2>/dev/null | grep "${KILL}")
 

@@ -1,35 +1,40 @@
-from os import read
-from errorClass import ERROR
-import shellComanndClass as shell
+# from os import sendfile, times, kill
+import os
+import signal
+import subprocess
+from errorClass import ERROR, criticalError
+import shellCommandClass as shell
+from multiprocessing import Process, process
+import time
 
 
 class ServerClass:
 
-    __selectedServer = None
+    __serverPath = None
+    __agentPath = None
+    __mapPath = None
 
     # サーバのリストを検索し、サーバ名を取得
     def __serverSearch(self) -> str:
-        serverList = shell.shell(
+        serverList = shell.getResult(
             "find ~/ -maxdepth 4 -type d -name '.*' -prune -o -type f -print  | grep jars/rescuecore2.jar").split(sep="\n")
 
         if len(serverList) <= 0:
             ERROR("サーバを発見できませんでした")
-            exit(1)
+            raise criticalError
 
-        # サーバ名のみを抜き出し
+        # サーバのパスを取得
         for i in range(len(serverList)):
             serverList[i] = serverList[i].replace("/jars/rescuecore2.jar", "")
-            serverList[i] = serverList[i][len(
-                serverList[i]) - len(serverList[i].split(sep="/")[-1]):]
 
-        return serverList[:-1]
+        return serverList[: -1]
 
     def serverSelect(self) -> str:
         serverList = self.__serverSearch()
         print("\n▼ サーバーリスト\n")
 
         for i, servername in enumerate(serverList):
-            print(str(i+1) + "\t" + servername)
+            print(str(i+1) + "\t" + self.toName(servername))
 
         print("\n上のリストからサーバを選択してください\n>", end="")
 
@@ -41,39 +46,41 @@ class ServerClass:
 
             print("もう一度入力してください\n>", end="")
 
-        self.__selectedServer = str(serverList[int(temp)-1])
-        return self.__selectedServer
+        self.__serverPath = str(serverList[int(temp)-1])
+        return self.__serverPath
 
-    def getServer(self) -> str:
-        return self.__selectedServer
+    def getServerPath(self) -> str:
+        return str(self.__serverPath)
 
-
-class agentClass:
-
-    __selectedAgent = None
+    def toName(self, path: str):
+        path = str(path)
+        splitName = path.split("/")
+        if len(splitName) > 0 and splitName[-1] != None:
+            return splitName[-1]
+        else:
+            ERROR("パスから名前の抽出にエラー")
+            raise criticalError
 
     def __agentSearch(self) -> str:
-        agentList = shell.shell(
+        agentList = shell.getResult(
             "find ~/ -maxdepth 4 -type d -name '.*' -prune -o -type f -print | grep config/module.cfg | sed 's@/config/module.cfg@@g'").split(sep="\n")
 
         if len(agentList) <= 0:
             ERROR("エージェントを発見できませんでした")
-            exit(1)
+            raise criticalError
 
         # エージェント名のみを抜き出し
         for i in range(len(agentList)):
             agentList[i] = agentList[i].replace("/jars/rescuecore2.jar", "")
-            agentList[i] = agentList[i][len(
-                agentList[i]) - len(agentList[i].split(sep="/")[-1]):]
 
-        return agentList[:-1]
+        return agentList[: -1]
 
     def agentSelect(self) -> str:
         agentList = self.__agentSearch()
         print("\n▼ エージェントリスト\n")
 
         for i, servername in enumerate(agentList):
-            print(str(i+1) + "\t" + servername)
+            print(str(i+1) + "\t" + self.toName(servername))
 
         print("\n上のリストからエージェントを選択してください\n>", end="")
 
@@ -85,38 +92,37 @@ class agentClass:
 
             print("もう一度入力してください\n>", end="")
 
-        self.__selectedAgent = str(agentList[int(temp)-1])
-        return self.__selectedAgent
+        self.__agentPath = str(agentList[int(temp)-1])
+        return self.__agentPath
 
-    def getAgent(self) -> str:
-        return self.__selectedAgent
-
-
-class mapClass:
-    __selectedMap = None
+    def getAgentPath(self) -> str:
+        return str(self.__agentPath)
 
     def __mapSearch(self) -> str:
-        mapList = shell.shell(
-            "find $SERVER/maps -name scenario.xml | sed 's@scenario.xml@@g'").split(sep="\n")
+        if self.getServerPath == None:
+            ERROR("サーバが指定されていません")
+            raise criticalError
 
-        if len(mapList) <= 0:
+        mapList = shell.getResult(
+            "find " + self.getServerPath() + "/maps -name scenario.xml | sed 's@scenario.xml@@g'").split(sep="\n")
+
+        if len(mapList) <= 1:
             ERROR("マップを発見できませんでした")
-            exit(1)
+            raise criticalError
 
         # マップ名のみを抜き出し
         for i in range(len(mapList)):
-            mapList[i] = mapList[i].replace("/jars/rescuecore2.jar", "")
-            mapList[i] = mapList[i][len(
-                mapList[i]) - len(mapList[i].split(sep="/")[-1]):]
+            mapList[i] = mapList[i].replace(
+                "/jars/rescuecore2.jar", "").replace("/map/", "")
 
-        return mapList[:-1]
+        return mapList[: -1]
 
     def mapSelect(self) -> str:
         mapList = self.__mapSearch()
         print("\n▼ マップリスト\n")
 
         for i, servername in enumerate(mapList):
-            print(str(i+1) + "\t" + servername)
+            print(str(i+1) + "\t" + self.toName(servername))
 
         print("\n上のリストからマップ番号を選択してください\n>", end="")
 
@@ -128,8 +134,35 @@ class mapClass:
 
             print("もう一度入力してください\n>", end="")
 
-        self.__selectedMap = str(mapList[int(temp)-1])
-        return self.__selectedMap
+        self.__mapPath = str(mapList[int(temp)-1])
+        return self.__mapPath
 
-    def getAgent(self) -> str:
-        return self.__selectedMap
+    def getMapPath(self) -> str:
+        return str(self.__mapPath)
+
+    def start(self):
+        shell.bash("pre_calculation.sh " + self.getServerPath() +
+                   " " + self.toName(self.getMapPath()))
+
+
+def subServerProcess(args: tuple):
+    serverPath = args[0]
+    agentPath = args[1]
+    print("サブプロセス起動")
+
+    shell.bash("chmod u+x gradlew")
+    shell.bash(agentPath + "/compile.sh")
+    shell.bash(agentPath +
+               "/launch.sh -t 1,0,1,0,1,0 -h localhost -pre 1 ")
+    APID = shell.getResult("$!")
+
+    time.sleep(10)
+
+    os.kill(int(APID), signal.SIGKILL)
+
+    time.sleep(15)
+
+    shell.sh(serverPath + "/kill.sh")
+
+    shell.bash("chmod u+x gradlew")
+    shell.bash(agentPath + "/launch.sh - all")
