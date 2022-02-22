@@ -365,7 +365,7 @@ echo "  ● ディレクトリ検索中..."
 IFS=$'\n'
 
 #サーバーディレクトリの登録
-if [[ ${DEBUG_FLAG} == "false" ]]; then
+if [[ ${DEBUG_FLAG} == 'false' ]]; then
 
     if [[ -z $SERVER ]] || [[ $ChangeConditions -eq 1 ]] || [[ ! -f $SERVER/boot/start-comprun.sh ]]; then
 
@@ -473,7 +473,7 @@ fi
 
 
 #エージェントディレクトリの登録
-if [[ ${DEBUG_FLAG} == "false" ]]; then
+if [[ ${DEBUG_FLAG} == 'false' ]]; then
     if [ -z $AGENT ] || [ $ChangeConditions -eq 1 ] || [ ! -f $AGENT/library/rescue/adf/adf-core.jar ]; then
 
         agentdirinfo=($(find ~/ -maxdepth 4 -type d -name ".*" -prune -o -type f -print | grep config/module.cfg | sed 's@/config/module.cfg@@g')) &>/dev/null
@@ -578,7 +578,7 @@ if [[ ${DEBUG_FLAG} == "false" ]]; then
 fi
 
 #マップディレクトリの登録
-if [[ ${DEBUG_FLAG} == "false" ]]; then
+if [[ ${DEBUG_FLAG} == 'false' ]]; then
     if [ ! -f $SERVER/$MAP/scenario.xml ] || [ $ChangeConditions -eq 1 ] || [ -z $MAP ]; then
 
         mapdirinfo=($(find $SERVER/maps -name scenario.xml | sed 's@scenario.xml@@g'))
@@ -733,7 +733,7 @@ cd $LOCATION
 
 #瓦礫有無選択
 defalutblockade=$(cat $CONFIG | grep "collapse.create-road-blockages" | awk '{print $2}')
-if [[ ${DEBUG_FLAG} == "false" ]]; then
+if [[ ${DEBUG_FLAG} == 'false' ]]; then
     if [ ! $brockade = "false" ] && [ ! $brockade = "true" ] || [ $ChangeConditions -eq 1 ]; then
 
         original_clear
