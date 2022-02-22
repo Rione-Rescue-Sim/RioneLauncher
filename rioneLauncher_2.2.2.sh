@@ -1027,7 +1027,7 @@ while true; do
 
     # ///////////////////////////////////////////////////////////////////////////////////////////
     # マップ内ループ
-    # レスキューシミュレーションの実行フラグ　デバッグ用
+    # レスキューシミュレーションの実行フラグ デバッグ用
     canExeSimuration="true"
     rm server.log &>/dev/null
     rm agent.log &>/dev/null
@@ -1057,7 +1057,7 @@ while true; do
             echo "########## $(($loop + 1)) / $LOOP Start ##################"
             echo
 
-            cd $SERVER/boot/
+            cd $SERVER/scripts/
 
             if [ $(grep -c "trap" start.sh) -eq 1 ]; then
 
