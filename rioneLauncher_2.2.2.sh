@@ -11,12 +11,12 @@
 #固定したくない場合は空白で大丈夫です。
 ##例) SERVER="/home/$USER/git/rcrs-server"
 #SERVER="/home/$USER/git/rcrs-server-master"
-SERVER="/home/$(whoami)/git/rcrs-server-1.5"
+SERVER=$(find ~/ -name 'rcrs-server-1.5' -type d)
 
 #使用するエージェントを固定したい場合は、例のようにフルパスを指定してください。
 #固定したくない場合は空白で大丈夫です。
 ##例) AGENT="/home/migly/git/sample"
-AGENT="/home/$(whoami)/git/adf-sample-agent-java-1.1"
+AGENT=$(find ~/ -name 'adf-sample-agent-java-1.1' -type d)
 
 #使用するマップを固定したい場合は、例のようにmapsディレクトリからのパスを指定してください。
 #固定したくない場合は空白で大丈夫です。
