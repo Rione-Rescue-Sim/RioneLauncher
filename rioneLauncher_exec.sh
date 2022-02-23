@@ -231,6 +231,12 @@ original_clear() {
 
 currentMapIdx=0
 
+SERVER=$(grep SERVER ${SETTING_FILE_NAME} | awk -F'=' '{print $2}')
+AGENT=$(grep AGENT ${SETTING_FILE_NAME} | awk -F'=' '{print $2}')
+MAP=$(grep MAP ${SETTING_FILE_NAME} | awk -F'=' '{print $2}')
+BROCKADE=$(grep BROCKADE ${SETTING_FILE_NAME} | awk -F'=' '{print $2}')
+LOOP=$(grep LOOP ${SETTING_FILE_NAME} | awk -F'=' '{print $2}')
+
 while true; do
 
     #読み込み最大値取得

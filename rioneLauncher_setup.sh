@@ -1,11 +1,4 @@
 #!/bin/bash
-#製作者: みぐりー
-
-# 3/8
-# [add]現在のブランチ名の表示
-# [fix]スコア取得の動作を改善
-# [fix]終了予測時間の計算をサイクルの更新があった場合のみ行うように変更
-# [fix]全マップ実行時にマップの時間が変更される問題を解消
 
 #使用するサーバーを固定したい場合は、例のようにフルパスを指定してください。
 #固定したくない場合は空白で大丈夫です。
@@ -48,14 +41,17 @@ SHUTDOUW=false
 # 自動アップデート有効: true, 無効: false
 UPDATE=false
 
-# コンテナのユーザ名
-# コンテナ内でgnome-terminalのkillで使用
-DOCKER_USER_NAME=RDocker
 
 #/////////////////////////////////////////////////////////////
 #ここから先は改変しないでくだせぇ動作が止まっても知らないゾ？↓
 
 DEBUG_FLAG=false
+
+# コンテナのユーザ名
+# コンテナ内でgnome-terminalのkillで使用
+DOCKER_USER_NAME=RDocker
+
+SETTING_FILE_NAME=setting.txt
 
 ROOT_PATH=$(
     cd
@@ -671,3 +667,11 @@ temp_path=0
 
 #環境変数変更
 IFS=$' \t\n'
+
+touch ${SETTING_FILE_NAME}
+cat /dev/null > ${SETTING_FILE_NAME}
+echo SERVER=${SERVER} >> ${SETTING_FILE_NAME}
+echo AGENT=${AGENT} >> ${SETTING_FILE_NAME}
+echo MAP=${MAP} >> ${SETTING_FILE_NAME}
+echo BROCKADE=${brockade} >> ${SETTING_FILE_NAME}
+echo LOOP=${LOOP} >> ${SETTING_FILE_NAME}
