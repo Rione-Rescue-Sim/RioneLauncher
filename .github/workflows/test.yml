@@ -34,4 +34,4 @@ jobs:
           ./gradlew build
       - name: run
         run: |
-          bash rioneRauncher.sh debug
+          bash rioneLauncher_2.2.2.sh debug
