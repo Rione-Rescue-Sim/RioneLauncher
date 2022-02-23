@@ -12,7 +12,7 @@ jobs:
       - name: install
         run: |
           sudo apt update
-          sudo apt-get install -y curl && apt-get install -y wget\
+          sudo apt-get install -y wget\
           git\
           openjdk-11-jdk\
           gnome-terminal\
