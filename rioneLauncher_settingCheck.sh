@@ -4,62 +4,34 @@ set -euo pipefail
 
 SETTING_FILE_NAME=$1
 
-if [[ -z $(find ./ -name ${SETTING_FILE_NAME} -type f ) ]]; then
+function ErrorCheck(){
+	read temp
+	if [[ -z ${temp} ]]; then
 
-    echo
-    echo [ERROR] $LINENO
-    echo -e "\t設定ファイルを見つけられません"
-    echo   
-    exit 1
+		echo
+		echo [ERROR] $1
+		echo
 
-fi
+    	exit 1
+	fi
+}
+
+echo $SETTING_FILE_NAME | ErrorCheck $LINENO
 
 SERVER=$(grep SERVER ${SETTING_FILE_NAME} | awk -F'=' '{print $2}')
-if [[ -z ${SERVER} ]]; then
+echo $SERVER | ErrorCheck $LINENO
 
-    echo
-    echo [ERROR] $LINENO
-    echo   
-    exit 1
-
-fi
 
 AGENT=$(grep AGENT ${SETTING_FILE_NAME} | awk -F'=' '{print $2}')
-if [[ -z ${AGENT} ]]; then
+echo $AGENT | ErrorCheck $LINENO
 
-    echo
-    echo [ERROR] $LINENO
-    echo   
-    exit 1
-
-fi
 
 MAP=$(grep MAP ${SETTING_FILE_NAME} | awk -F'=' '{print $2}')
-if [[ -z ${MAP} ]]; then
+echo $MAP | ErrorCheck $LINENO
 
-    echo
-    echo [ERROR] $LINENO
-    echo   
-    exit 1
-
-fi
 
 BROCKADE=$(grep BROCKADE ${SETTING_FILE_NAME} | awk -F'=' '{print $2}')
-if [[ -z ${BROCKADE} ]]; then
-
-    echo
-    echo [ERROR] $LINENO
-    echo   
-    exit 1
-
-fi
+echo $BROCKADE | ErrorCheck $LINENO
 
 LOOP=$(grep LOOP ${SETTING_FILE_NAME} | awk -F'=' '{print $2}')
-if [[ -z ${LOOP} ]] || [[ ${LOOP} -le 0 ]]; then
-
-    echo
-    echo [ERROR] $LINENO
-    echo   
-    exit 1
-
-fi
+echo $LOOP | ErrorCheck $LINENO
