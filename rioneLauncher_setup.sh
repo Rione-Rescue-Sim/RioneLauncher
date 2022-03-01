@@ -555,35 +555,33 @@ fi
 
 #ループ回数選択
 if [[ ${DEBUG_FLAG} == "false" ]]; then
-    if [ $LOOP -le 0 ] || [ -z $LOOP ] || [ $ChangeConditions -eq 1 ]; then
 
-        original_clear
+	original_clear
 
-        echo
-        echo "何回実行しますか？(1以上)"
+	echo
+	echo "何回実行しますか？(1以上)"
 
-        while true; do
-            read loopselect
+	while true; do
+		read loopselect
 
-            #エラー入力チェック
-            if [[ -z $(echo "$loopselect" | grep "^[0-9]\+$") ]]; then
-                echo '数字を入力してください。'
-                continue
-            fi
+		#エラー入力チェック
+		if [[ -z $(echo "$loopselect" | grep "^[0-9]\+$") ]]; then
+			echo '数字を入力してください。'
+			continue
+		fi
 
-            if [ $loopselect -le 0 ]; then
-                echo '1以上の数字を入力してください。'
-                continue
-            fi
+		if [ $loopselect -le 0 ]; then
+			echo '1以上の数字を入力してください。'
+			continue
+		fi
 
-            LOOP=$loopselect
-            break
+		LOOP=$loopselect
+		break
 
-        done
+	done
 
-        original_clear
+	original_clear
 
-    fi
 fi
 
 #読み込み最大値取得
@@ -676,3 +674,4 @@ echo AGENT=${AGENT} >> ${SETTING_FILE_NAME}
 echo MAP=${MAP} >> ${SETTING_FILE_NAME}
 echo BROCKADE=${brockade} >> ${SETTING_FILE_NAME}
 echo LOOP=${LOOP} >> ${SETTING_FILE_NAME}
+echo CONFIG=${CONFIG} >> ${SETTING_FILE_NAME}

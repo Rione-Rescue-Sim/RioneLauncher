@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# set -e
+
 # レスキューの実行を行う
 # エージェントやマップは引数として受け取る
 # すべてを1ファイルで行うと行数が膨大になり、管理が大変になるので分割した
@@ -19,12 +21,13 @@ phase=0
 
 if [[ ! -f $LOCATION/$(echo "$0") ]]; then
     echo 'スクリプトと同じディレクトリで実行してください。'
-    exit 0
+    # exit 0
 fi
 
 #[C+ctrl]検知
 trap 'last' {1,2,3,15}
 rm $LOCATION/.signal &>/dev/null
+# trap 'err ${LINENO[0]} ${FUNCNAME[1]}' ERR
 
 killcommand() {
 
@@ -231,13 +234,14 @@ original_clear() {
 
 currentMapIdx=0
 
-SETTING_FILE_NAME=setting.txt
+readonly SETTING_FILE_NAME=setting.txt
 
-SERVER=$(grep SERVER ${SETTING_FILE_NAME} | awk -F'=' '{print $2}')
-AGENT=$(grep AGENT ${SETTING_FILE_NAME} | awk -F'=' '{print $2}')
-MAP=$(grep MAP ${SETTING_FILE_NAME} | awk -F'=' '{print $2}')
-brockade=$(grep BROCKADE ${SETTING_FILE_NAME} | awk -F'=' '{print $2}')
-LOOP=$(grep LOOP ${SETTING_FILE_NAME} | awk -F'=' '{print $2}')
+readonly SERVER=$(grep SERVER ${SETTING_FILE_NAME} | awk -F'=' '{print $2}')
+readonly AGENT=$(grep AGENT ${SETTING_FILE_NAME} | awk -F'=' '{print $2}')
+readonly MAP=$(grep MAP ${SETTING_FILE_NAME} | awk -F'=' '{print $2}')
+readonly brockade=$(grep BROCKADE ${SETTING_FILE_NAME} | awk -F'=' '{print $2}')
+readonly LOOP=$(grep LOOP ${SETTING_FILE_NAME} | awk -F'=' '{print $2}')
+readonly CONFIG=$(grep CONFIG ${SETTING_FILE_NAME} | awk -F'=' '{print $2}')
 
 
 while true; do
@@ -286,7 +290,6 @@ while true; do
 
     #////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    echo
     IFS=$'\n'
 
     civilian_max=$(echo "${scenariolist[*]}" | grep -c "civilian")
@@ -408,7 +411,9 @@ while true; do
                 echo
                 echo -n "  コンパイル中..."
                 bash compile.sh >$LOCATION/agent.log 2>&1
-                echo "$LINENO gnome-terminal: $?"
+				if [[ $? -ne 0 ]]; then
+                	echo "$LINENO gnome-terminal: $?"
+				fi
             else
                 echo
                 echo -n "  Ready..."
@@ -451,12 +456,17 @@ while true; do
 
             }
 
+			# 与えられた数値に％をつけて出力する。100の場合は緑の字でOKを追加
             proportion() {
 
+				# 進行度が100のとき
+				if [[ $1 -eq 100 ]]; then
+					echo -e $1"%\t \e[32mOK\e[m"
+					return
+				fi
+
                 if [ ! $1 -lt 0 ]; then
-
                     echo -n $1"%"
-
                 fi
 
             }
@@ -569,6 +579,7 @@ while true; do
 
                 fi
 
+				# ロード終了
                 if [ ! $(grep -c "Done connecting to server" agent.log) -eq 0 ]; then
 
                     if [ $(cat agent.log | grep "Done connecting to server" | awk '{print $6}' | sed -e 's/(//g') -gt 0 ]; then
@@ -578,6 +589,15 @@ while true; do
                             [ ! $(grep -c "failed: No more agents" server.log) -eq 1 ] && continue
 
                         fi
+
+						#進行度表示
+						str_Civilian="      Civilian | `proportion 100`"
+						str_AmbulanceTeam=" AmbulanceTeam | `proportion 100`"
+						str_FireBrigade="   FireBrigade | `proportion 100`"
+						str_PoliceForce="   PoliceForce | `proportion 100`"
+
+						echo -e "\e[12;0H" #カーソルを12行目の0列目に戻す
+						echo -e "$str_Civilian\n$str_AmbulanceTeam\n$str_FireBrigade\n$str_PoliceForce\c"
 
                         echo
                         echo
@@ -605,8 +625,6 @@ while true; do
 
             while true; do
 
-                dis_time=$(date +%s)
-
                 kill_subwindow
 
                 cycle=$(cat $SERVER/boot/logs/traffic.log | grep -a "Timestep" | grep -a "took" | awk '{print $5}' | tail -n 1)
@@ -625,8 +643,8 @@ while true; do
                     # echo -n "**** Time: $cycle / $map_time*************************"
                     # echo -n " "
                     # 表示がかぶることがあるので結合して出力を行う
-                    str_cycle="**** Time: ${cycle} / $map_time　*************************"
-                    echo -n "$str_cycle"
+                    str_cycle="**** Time: ${cycle} / $map_time *************************"
+                    echo -e -n "\r$str_cycle"
 
                 fi
 
@@ -673,16 +691,10 @@ while true; do
 
                         fi
 
-                        echo -e "\r\c"　#カーソルを先頭に戻し、改行しない→上書き
-                        echo -e "$str_cycle $str_exp\r\c"
+					fi
 
-                    # サイクルの更新がなかった場合
-                    else
-
-                        echo -e "\r\c"　#カーソルを先頭に戻し、改行しない→上書き
-                        echo -e "$str_cycle $str_exp\r\c"
-
-                    fi
+					#カーソルを先頭に戻し、改行しない→上書き
+                    echo -e "\r$str_cycle $str_exp"
 
                 fi
 
