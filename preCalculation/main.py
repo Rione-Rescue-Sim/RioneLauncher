@@ -20,7 +20,7 @@ def setup():
         "find ~/ -type f -name '/boot/kill.sh' ", shell=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
 
 
-def kill(signum, frame):
+def kill():
     if killFilePath != None:
         shell.sh(killFilePath + "/kill.sh")
     exit(1)
@@ -37,7 +37,7 @@ def main():
 
         server.agentSelect()
         server.mapSelect()
-        killFilePath = server.getServerPath() + "/boot/"
+        killFilePath = server.getServerPath() + "/boot"
         server.start()
 
     except:

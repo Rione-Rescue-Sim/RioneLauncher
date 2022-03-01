@@ -1,20 +1,11 @@
 #!/bin/bash
 
-AGENT="RIORescue"
-
-KILL="rcrs-server/boot"
+LOG="__PRE_CALC.log"
 
 # /////////////////////////////////////////////////////////////////////////////////////////////
 # 以下処理部分
 
 LOCATION=$(cd $(dirname $0); pwd)
-
-# ユーザディレクトリまでのパスを取得
-AGENT=$(find ~/ -name ${AGENT} -type d 2>/dev/null | grep -v "docker")
-KILL=$(find ~/ -name boot -type d 2>/dev/null | grep "${KILL}")
-
-
-cd $AGENT
 
 #[C+ctrl]検知
 trap 'last' {1,2,3,15}
@@ -72,7 +63,7 @@ last(){
     echo
     echo " 事前計算を中断します...Σ(ﾟДﾟﾉ)ﾉ"
     echo
-    cd $KILL
+    cd $SERVER_PATH/boot
     ./kill.sh
     kill -9 $(ps aux | grep "pre_calculation.sh" | grep -v "gnome-terminal" | awk '{print $2}') &>/dev/null
     kill -9 $(ps aux | grep "__pre_calculation.sh" | grep -v "gnome-terminal" | awk '{print $2}') &>/dev/null
@@ -81,20 +72,26 @@ last(){
     exit 1
 }
 
-echo "起動完了"
+SERVER_PATH=$1
+SRC_PATH=$2
+
+echo "launch completion"
 
 sleep 5
 
-chmod u+x gradlew
+cd ${SRC_PATH}
 
-bash compile.sh ; bash launch.sh -t 1,0,1,0,1,0 -h localhost -pre 1 & APID=$! ; sleep 120 ; kill $APID
-# bash compile.sh ; bash launch.sh -t 1,0,1,0,1,0 -h localhost -pre 1 & APID=$! ; sleep 10 ; kill $APID
-echo "killのエラーは仕様です"
-cd $KILL
-./kill.sh
+# chmod u+x gradlew
+./gradlew build
+
+sh launch.sh -t 1,0,1,0,1,0 -pre 1
+
+sleep 30
+
+cd $SERVER_PATH/boot; ./kill.sh
 
 sleep 15
 
-cd $AGENT
-chmod u+x gradlew
-bash launch.sh -all
+
+cd ${SRC_PATH}
+sh launch.sh -all

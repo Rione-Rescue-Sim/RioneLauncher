@@ -1,4 +1,5 @@
 #!/bin/bash
+LOG="__PRE_CALC.log"
 
 
 #[C+ctrl]検知
@@ -10,7 +11,7 @@ last(){
     echo
     echo " 事前計算を中断します...Σ(ﾟДﾟﾉ)ﾉ"
     echo
-    cd $KILL; ./kill.sh
+    cd $SERVER_PATH/boot; ./kill.sh
     kill -9 $(ps aux | grep "__pre_calculation.sh" | grep -v "gnome-terminal" | awk '{print $2}') &>/dev/null
     kill -9 $(ps aux | grep "pre_calculation.sh" | grep -v "gnome-terminal" | awk '{print $2}') &>/dev/null
     exit 1
@@ -54,7 +55,7 @@ server_start(){
         #サーバー起動
         gnome-terminal -x bash -c "
             echo -n 'serverStart' > dockerServerLog.txt
-            bash __pre_calculation.sh
+            bash __pre_calculation.sh ${SERVER_PATH} ${SRC_PATH}
         "&
 
         if [[ $error_cnt -gt 10 ]]; then
@@ -74,7 +75,7 @@ server_start(){
 
         else
             echo "[ERROR] $LINENO"
-            echo "サーバを再起動します"
+            echo "server restart"
             kill_docker_gnome-terminal
             error_cnt=$error_cnt+1
             sleep 3
@@ -93,19 +94,27 @@ server_start(){
 
 ChangeConditions=1
 
+
 SERVER_PATH=$1
 MAP_NAME=$2
+SRC_PATH=$3
+
+echo "SERVER_PATH=$1 MAP_NAME=$2 SRC_PATH=$3"
+
+rm ${LOG}
+touch ${LOG}
+
+
 
 server_start
 
-cd $SERVER_PATH
-cd "boot"
-
 sleep 3
 
-bash start-precompute.sh -m $SERVER_PATH/${MAP%/*}
+cd $SERVER_PATH/boot
+echo "bash start-precompute.sh -m $SERVER_PATH/${MAP_NAME}/map -c $SERVER_PATH/${MAP_NAME}/config"
+echo bash start-precompute.sh -m $SERVER_PATH/${MAP_NAME}/map -c $SERVER_PATH/${MAP_NAME}/config
+
 
 echo "MAP: $MAP_NAME"
 
-bash start-comprun.sh $SERVER_PATH/$MAP_NAME
-
+bash start-comprun.sh -m ../maps/gml/${MAP_NAME}/map -c ../maps/gml/${MAP_NAME}/config

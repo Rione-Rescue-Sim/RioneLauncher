@@ -141,8 +141,10 @@ class ServerClass:
         return str(self.__mapPath)
 
     def start(self):
+        print(self.getServerPath() + " " +
+              self.toName(self.getMapPath()) + " " + self.getAgentPath())
         shell.bash("pre_calculation.sh " + self.getServerPath() +
-                   " " + self.toName(self.getMapPath()))
+                   " " + self.toName(self.getMapPath()) + " " + self.getAgentPath())
 
 
 def subServerProcess(args: tuple):
