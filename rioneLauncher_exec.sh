@@ -231,11 +231,14 @@ original_clear() {
 
 currentMapIdx=0
 
+SETTING_FILE_NAME=setting.txt
+
 SERVER=$(grep SERVER ${SETTING_FILE_NAME} | awk -F'=' '{print $2}')
 AGENT=$(grep AGENT ${SETTING_FILE_NAME} | awk -F'=' '{print $2}')
 MAP=$(grep MAP ${SETTING_FILE_NAME} | awk -F'=' '{print $2}')
-BROCKADE=$(grep BROCKADE ${SETTING_FILE_NAME} | awk -F'=' '{print $2}')
+brockade=$(grep BROCKADE ${SETTING_FILE_NAME} | awk -F'=' '{print $2}')
 LOOP=$(grep LOOP ${SETTING_FILE_NAME} | awk -F'=' '{print $2}')
+
 
 while true; do
 
@@ -533,31 +536,31 @@ while true; do
                 fi
 
                 #進行度表示
-                # str_Civilian="      Civilian | `proportion $(($civilian_read*100/${maxlist[2]}))`"
-                # str_AmbulanceTeam=" AmbulanceTeam | `proportion $(($ambulanceteam_read*100/${maxlist[3]}))`"
-                # str_FireBrigade="   FireBrigade | `proportion $(($firebrigade_read*100/${maxlist[4]}))`"
-                # str_PoliceForce="   PoliceForce | `proportion $(($policeforce_read*100/${maxlist[5]}))`"
+                str_Civilian="      Civilian | `proportion $(($civilian_read*100/${maxlist[2]}))`"
+                str_AmbulanceTeam=" AmbulanceTeam | `proportion $(($ambulanceteam_read*100/${maxlist[3]}))`"
+                str_FireBrigade="   FireBrigade | `proportion $(($firebrigade_read*100/${maxlist[4]}))`"
+                str_PoliceForce="   PoliceForce | `proportion $(($policeforce_read*100/${maxlist[5]}))`"
 
-                # echo -e "\e[12;0H" #カーソルを12行目の0列目に戻す
-                # echo -e "$str_Civilian\n$str_AmbulanceTeam\n$str_FireBrigade\n$str_PoliceForce\c"
+                echo -e "\e[12;0H" #カーソルを12行目の0列目に戻す
+                echo -e "$str_Civilian\n$str_AmbulanceTeam\n$str_FireBrigade\n$str_PoliceForce\c"
 
                 #  色付き進捗バーは非常に重いので廃止。一応残してある
-                echo -e "\e[11;0H" #カーソルを11行目の0列目に戻す
-                echo -e "\e[K\c"
-                echo -e "      Civilian |"$(lording_ber $(($civilian_read * 100 / ${maxlist[2]})) 2) "\e[m|" $(proportion $(($civilian_read * 100 / ${maxlist[2]})))
-                echo
+                # echo -e "\e[11;0H" #カーソルを11行目の0列目に戻す
+                # echo -e "\e[K\c"
+                # echo -e "      Civilian |"$(lording_ber $(($civilian_read * 100 / ${maxlist[2]})) 2) "\e[m|" $(proportion $(($civilian_read * 100 / ${maxlist[2]})))
+                # echo
 
-                echo -e "\e[K\c"
-                echo -e " AmbulanceTeam |"$(lording_ber $(($ambulanceteam_read * 100 / ${maxlist[3]})) 3) "\e[m|" $(proportion $(($ambulanceteam_read * 100 / ${maxlist[3]})))
-                echo
+                # echo -e "\e[K\c"
+                # echo -e " AmbulanceTeam |"$(lording_ber $(($ambulanceteam_read * 100 / ${maxlist[3]})) 3) "\e[m|" $(proportion $(($ambulanceteam_read * 100 / ${maxlist[3]})))
+                # echo
 
-                echo -e "\e[K\c"
-                echo -e "   FireBrigade |"$(lording_ber $(($firebrigade_read * 100 / ${maxlist[4]})) 4) "\e[m|" $(proportion $(($firebrigade_read * 100 / ${maxlist[4]})))
-                echo
+                # echo -e "\e[K\c"
+                # echo -e "   FireBrigade |"$(lording_ber $(($firebrigade_read * 100 / ${maxlist[4]})) 4) "\e[m|" $(proportion $(($firebrigade_read * 100 / ${maxlist[4]})))
+                # echo
 
-                echo -e "\e[K\c"
-                echo -e "   PoliceForce |"$(lording_ber $(($policeforce_read * 100 / ${maxlist[5]})) 5) "\e[m|" $(proportion $(($policeforce_read * 100 / ${maxlist[5]})))
-                echo
+                # echo -e "\e[K\c"
+                # echo -e "   PoliceForce |"$(lording_ber $(($policeforce_read * 100 / ${maxlist[5]})) 5) "\e[m|" $(proportion $(($policeforce_read * 100 / ${maxlist[5]})))
+                # echo
 
                 if [ $(grep -c "Loader is not found." agent.log) -eq 1 ]; then
 

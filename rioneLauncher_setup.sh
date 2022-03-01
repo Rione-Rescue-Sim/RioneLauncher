@@ -59,7 +59,6 @@ ROOT_PATH=$(
 )
 CURRENT_PATH=$(pwd)
 
-CurrentVer=2.2.2
 os=$(uname)
 LOCATION=$(
     cd $(dirname $0)
@@ -80,6 +79,11 @@ fi
 trap 'last' {1,2,3,15}
 rm $LOCATION/.signal &>/dev/null
 
+last() {
+	echo
+    exit 1
+}
+
 original_clear() {
     for ((i = 1; i < $(tput lines); i++)); do
         echo ""
@@ -95,7 +99,7 @@ original_clear
 echo " □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □"
 echo " □                                                                 □"
 echo " □ 　Rione Launcher ($os)                                        □"
-echo " □ 　　- レスキューシミュレーション起動補助スクリプト　Ver.$CurrentVer -  □"
+echo " □ 　　- レスキューシミュレーション起動補助スクリプト		   □"
 echo " □                                                                 □"
 echo " □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □"
 
@@ -497,47 +501,45 @@ cd $LOCATION
 #瓦礫有無選択
 defalutblockade=$(cat $CONFIG | grep "collapse.create-road-blockages" | awk '{print $2}')
 if [[ ${DEBUG_FLAG} == 'false' ]]; then
-    if [ ! $brockade = "false" ] && [ ! $brockade = "true" ] || [ $ChangeConditions -eq 1 ]; then
+	original_clear
 
-        original_clear
+	echo
+	echo "瓦礫を配置しますか？(y/n)"
 
-        echo
-        echo "瓦礫を配置しますか？(y/n)"
+	while true; do
+		read brockadeselect
 
-        while true; do
-            read brockadeselect
+		#エラー入力チェック
+		if [ $brockadeselect = "n" ]; then
 
-            #エラー入力チェック
-            if [ $brockadeselect = "n" ]; then
+			brockade="false"
+			break
 
-                brockade="false"
-                break
+		fi
 
-            fi
+		if [ $brockadeselect = "y" ]; then
 
-            if [ $brockadeselect = "y" ]; then
+			brockade="true"
+			break
 
-                brockade="true"
-                break
+		fi
 
-            fi
+		echo "もう一度入力してください。"
 
-            echo "もう一度入力してください。"
+	done
 
-        done
+	original_clear
 
-        original_clear
+else
 
-    else
+	if [ -z $brockade ]; then
 
-        if [ -z $brockade ]; then
+		brockade=$defalutblockade
 
-            brockade=$defalutblockade
+	fi
 
-        fi
-
-    fi
 fi
+
 #設定書き込み
 if [ $brockade = "false" ]; then
 
