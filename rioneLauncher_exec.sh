@@ -363,7 +363,7 @@ while true; do
             echo "########## $(($loop + 1)) / $LOOP Start ##################"
             echo
 
-            cd $SERVER/boot/
+            cd $SERVER/scripts/
 
             if [ $(grep -c "trap" start.sh) -eq 1 ]; then
 
