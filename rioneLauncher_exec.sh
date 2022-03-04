@@ -45,11 +45,11 @@ killcommand() {
 
     fi
 
-    if [[ -f $SERVER/boot/"backup-$START_LAUNCH" ]]; then
+    if [[ -f $SERVER/scripts/"backup-$START_LAUNCH" ]]; then
 
-        rm $SERVER/boot/$START_LAUNCH
-        cat $SERVER/boot/backup-$START_LAUNCH >$SERVER/boot/$START_LAUNCH
-        rm $SERVER/boot/"backup-$START_LAUNCH"
+        rm $SERVER/scripts/$START_LAUNCH
+        cat $SERVER/scripts/backup-$START_LAUNCH >$SERVER/scripts/$START_LAUNCH
+        rm $SERVER/scripts/"backup-$START_LAUNCH"
 
     fi
 
@@ -199,9 +199,9 @@ last() {
         echo
         echo " シミュレーションを中断します...Σ(ﾟДﾟﾉ)ﾉ"
         echo
-        if [[ -f $SERVER/boot/logs/kernel.log ]] && [[ ! -z $(grep -a -C 0 'Score:' $SERVER/boot/logs/kernel.log | tail -n 1 | awk '{print $5}') ]]; then
+        if [[ -f $SERVER/logs/log/kernel.log ]] && [[ ! -z $(grep -a -C 0 'Score:' $SERVER/logs/log/kernel.log | tail -n 1 | awk '{print $5}') ]]; then
             echo
-            echo "◆　これまでのスコア : "$(grep -a -C 0 'Score:' $SERVER/boot/logs/kernel.log | tail -n 1 | awk '{print $5}')
+            echo "◆　これまでのスコア : "$(grep -a -C 0 'Score:' $SERVER/logs/log/kernel.log | tail -n 1 | awk '{print $5}')
             echo
         fi
     fi
@@ -508,7 +508,7 @@ while true; do
                 kill_subwindow
 
                 #ログ読み込み
-                if [ $(grep -c "trap" $SERVER/boot/start.sh) -eq 1 ]; then
+                if [ $(grep -c "trap" $SERVER/scripts/start.sh) -eq 1 ]; then
 
                     building_read=-1
                     road_read=-1
@@ -627,7 +627,7 @@ while true; do
 
                 kill_subwindow
 
-                cycle=$(cat $SERVER/boot/logs/traffic.log | grep -a "Timestep" | grep -a "took" | awk '{print $5}' | tail -n 1)
+                cycle=$(cat $SERVER/logs/log/traffic.log | grep -a "Timestep" | grep -a "took" | awk '{print $5}' | tail -n 1)
 
                 expr $cycle + 1 >/dev/null 2>&1
 
@@ -710,18 +710,18 @@ while true; do
                     echo -e "スコア取得中\r\c"
 
                     # while [[ -z `echo $score | grep "^-\?[0-9]\+\.\?[0-9]*$"` ]]; do
-                    #     score=$(grep -a -C 0 'Score:' $SERVER/boot/logs/kernel.log | tail -n 1 | awk '{print $5}')
+                    #     score=$(grep -a -C 0 'Score:' $SERVER/logs/log/kernel.log | tail -n 1 | awk '{print $5}')
                     # done
 
                     sleep 2
                     sync
                     cd
-                    score=$(grep -a -C 0 'Score:' $SERVER/boot/logs/kernel.log | tail -n 1 | awk '{print $5}')
+                    score=$(grep -a -C 0 'Score:' $SERVER/logs/log/kernel.log | tail -n 1 | awk '{print $5}')
                     # そのマップにおけるスコアの桁数の最大値が求められていない場合
                     if [[ $MaxDigitScore -eq 0 ]]; then
                         # 少なくとも5回は桁数の最大値を更新する
                         for ((i = 0; i < 5; i++)); do
-                            score=$(grep -a -C 0 'Score:' $SERVER/boot/logs/kernel.log | tail -n 1 | awk '{print $5}')
+                            score=$(grep -a -C 0 'Score:' $SERVER/logs/log/kernel.log | tail -n 1 | awk '{print $5}')
                             if [[ $MaxDigitScore -lt ${#score} ]]; then
                                 MaxDigitScore=${#score}
                             fi
@@ -734,7 +734,7 @@ while true; do
                     loop_cnt=0
                     temp_score=0
                     while true; do
-                        score=$(grep -a -C 0 'Score:' $SERVER/boot/logs/kernel.log | tail -n 1 | awk '{print $5}')
+                        score=$(grep -a -C 0 'Score:' $SERVER/logs/log/kernel.log | tail -n 1 | awk '{print $5}')
                         # socreの桁数が事前に取得した検査用の精度を満たす場合
                         if [[ ${MaxDigitScore} -le ${#score} ]]; then
                             # 取得したスコアの精度が検査用の精度以上のとき
@@ -862,9 +862,9 @@ while true; do
 
             else
 
-                if [ -e $SERVER/boot/config/collapse.cfg ]; then
+                if [ -e $SERVER/$MAP/config/collapse.cfg ]; then
 
-                    CONFIG=$SERVER/boot/config/collapse.cfg
+                    CONFIG=$SERVER/$MAP/config/collapse.cfg
 
                 else
 
