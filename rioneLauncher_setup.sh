@@ -65,7 +65,6 @@ LOCATION=$(
     pwd
 )
 phase=0
-master_url="https://raw.githubusercontent.com/Rione-Rescue-Sim/RioneLauncher/main/rioneLauncher_2.2.2.sh"
 
 echo $0
 echo $LOCATION
@@ -131,12 +130,14 @@ echo "  ● ディレクトリ検索中..."
 #環境変数変更
 IFS=$'\n'
 
+readonly HOME_DIR=/home/${DOCKER_USER_NAME}
+
 #サーバーディレクトリの登録
 if [[ ${DEBUG_FLAG} == 'false' ]]; then
 
     if [[ -z $SERVER ]] || [[ $ChangeConditions -eq 1 ]] || [[ ! -f $SERVER/boot/start-comprun.sh ]]; then
 
-        serverdirinfo=($(find ~/ -maxdepth 4 -type d -name ".*" -prune -o -type f -print | grep jars/rescuecore2.jar | sed 's@/jars/rescuecore2.jar@@g')) &>/dev/null
+        serverdirinfo=($(find ${HOME_DIR}/ -maxdepth 4 -type d -name ".*" -prune -o -type f -print | grep jars/rescuecore2.jar | sed 's@/jars/rescuecore2.jar@@g')) &>/dev/null
 
         original_clear
 
