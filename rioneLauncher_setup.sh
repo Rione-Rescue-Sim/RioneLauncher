@@ -244,7 +244,7 @@ fi
 if [[ ${DEBUG_FLAG} == 'false' ]]; then
     if [ -z $AGENT ] || [ $ChangeConditions -eq 1 ] || [ ! -f $AGENT/library/rescue/adf/adf-core.jar ]; then
 
-        agentdirinfo=($(find ~/ -maxdepth 4 -type d -name ".*" -prune -o -type f -print | grep config/module.cfg | sed 's@/config/module.cfg@@g')) &>/dev/null
+        agentdirinfo=($(find ${HOME_DIR}/ -maxdepth 4 -type d -name ".*" -prune -o -type f -print | grep config/module.cfg | sed 's@/config/module.cfg@@g')) &>/dev/null
 
         original_clear
 
