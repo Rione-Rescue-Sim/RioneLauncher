@@ -76,8 +76,10 @@ killcommand() {
 }
 
 server_start(){
+	cd $AGENT
     touch agent.log
     touch server.log
+	cd -
 
     local DOCKER_SERVER_LOG=dockerServerLog.txt
     error_cnt=0
