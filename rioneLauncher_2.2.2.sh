@@ -361,7 +361,7 @@ echo "  ● ディレクトリ検索中..."
 IFS=$'\n'
 
 #サーバーディレクトリの登録
-if [[ -z $SERVER ]] || [[ $ChangeConditions -eq 1 ]] || [[ ! -f $SERVER/scripts/start-comprun.sh ]] || [[ ${DEBUG_FLAG} == 'false']]; then
+if [ -z $SERVER ] || [ $ChangeConditions -eq 1 ] || [ ! -f $SERVER/scripts/start-comprun.sh ] || [ $DEBUG_FLAG = 'false' ]; then
 
     serverdirinfo=($(find ~/ -maxdepth 4 -type d -name ".*" -prune -o -type f -print | grep jars/rescuecore2.jar | sed 's@/jars/rescuecore2.jar@@g')) &>/dev/null
 
