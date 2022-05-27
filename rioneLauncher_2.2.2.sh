@@ -1079,7 +1079,7 @@ while true; do
                 ./gradlew clean
                 ./gradlew build | tee $LOCATION/agent.log
                 echo "$LINENO gnome-terminal: $?"
-                if [[ $? -ne 0 ]]; then
+                if [[ cat $LOCATION/agent.log | grep "BUILD FAILED" ]]; then
                     echo "[debug] HIT $LINENO"
                     exit 1
                 fi
