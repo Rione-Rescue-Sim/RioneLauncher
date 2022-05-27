@@ -1100,7 +1100,8 @@ while true; do
             if [[ $loop -eq 0 ]]; then
                 echo
                 echo -n "  コンパイル中..."
-                bash compile.sh >$LOCATION/agent.log 2>&1
+                gradlew clean
+                gradlew build > $LOCATION/agent.log 2>&1
                 echo "$LINENO gnome-terminal: $?"
             else
                 echo
@@ -1108,15 +1109,7 @@ while true; do
                 echo 'Done.' >$LOCATION/agent.log
             fi
 
-            if [[ -f 'start.sh' ]]; then
-
-                bash start.sh -1 -1 -1 -1 -1 -1 localhost >>$LOCATION/agent.log 2>&1 &
-
-            else
-
-                bash ./launch.sh -all -local >>$LOCATION/agent.log 2>&1 &
-
-            fi
+            bash ./launch.sh -all -local >>$LOCATION/agent.log 2>&1 &
 
             cd $LOCATION
 
