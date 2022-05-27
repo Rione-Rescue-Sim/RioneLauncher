@@ -1085,6 +1085,7 @@ while true; do
                 echo
                 echo -n "  Ready..."
                 echo 'Done.' >$LOCATION/agent.log
+                sleep 3
             fi
 
             cd $SERVER/scripts/
@@ -1119,10 +1120,6 @@ while true; do
 
                 echo "[debug] HIT $LINENO"
                 exit 1
-
-            fi
-
-
 
             fi
 
