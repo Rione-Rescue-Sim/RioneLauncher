@@ -1076,9 +1076,8 @@ while true; do
             if [[ $loop -eq 0 ]]; then
                 pwd
                 echo -n "  コンパイル中..."
-                sleep 5
                 ./gradlew clean
-                ./gradlew build tee $LOCATION/agent.log
+                ./gradlew build | tee $LOCATION/agent.log
                 echo "$LINENO gnome-terminal: $?"
                 if [[ $? -ne 0 ]]; then
                     echo "[debug] HIT $LINENO"
