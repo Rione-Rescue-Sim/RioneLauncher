@@ -1078,8 +1078,12 @@ while true; do
                 echo -n "  コンパイル中..."
                 sleep 5
                 ./gradlew clean
-                ./gradlew build > $LOCATION/agent.log 2>&1
+                ./gradlew build tee $LOCATION/agent.log
                 echo "$LINENO gnome-terminal: $?"
+                if [[ $? -ne 0 ]]; then
+                    echo "[debug] HIT $LINENO"
+                    exit 1
+                fi
                 sleep 5
             else
                 echo
@@ -1115,13 +1119,6 @@ while true; do
 
 
             bash ./launch.sh -all -local >>$LOCATION/agent.log 2>&1 &
-
-            if [[ $? -ne 0 ]]; then
-
-                echo "[debug] HIT $LINENO"
-                exit 1
-
-            fi
 
             cd $LOCATION
 
