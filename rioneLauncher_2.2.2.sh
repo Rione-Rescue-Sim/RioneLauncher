@@ -1081,7 +1081,7 @@ while true; do
                 echo "$LINENO gnome-terminal: $?"
                 grep "BUILD FAILED" $LOCATION/agent.log
                 if [[ $? -ne 0 ]]; then
-                    echo "[debug] HIT $LINENO"
+                    echo "コンパイルに失敗しました"
                     exit 1
                 fi
                 sleep 5
