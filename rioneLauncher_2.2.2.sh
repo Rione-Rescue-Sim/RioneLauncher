@@ -1077,8 +1077,8 @@ while true; do
                 pwd
                 echo -n "  コンパイル中..."
                 sleep 5
-                gradlew clean
-                gradlew build > $LOCATION/agent.log 2>&1
+                ./gradlew clean
+                ./gradlew build > $LOCATION/agent.log 2>&1
                 echo "$LINENO gnome-terminal: $?"
                 sleep 5
             else
