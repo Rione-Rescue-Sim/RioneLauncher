@@ -1074,7 +1074,7 @@ while true; do
             cd $AGENT
 
             if [[ $loop -eq 0 ]]; then
-                echo
+                pwd
                 echo -n "  コンパイル中..."
                 sleep 5
                 gradlew clean
