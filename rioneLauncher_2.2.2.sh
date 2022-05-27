@@ -1070,6 +1070,24 @@ while true; do
             sed -i "s/$(cat $START_LAUNCH | grep 'startKernel')/startKernel --nomenu --autorun/g" $START_LAUNCH
             sed -i "s/$(cat $START_LAUNCH | grep 'startSims')/startSims --nogui/g" $START_LAUNCH
 
+            #エージェント起動
+            cd $AGENT
+
+            if [[ $loop -eq 0 ]]; then
+                echo
+                echo -n "  コンパイル中..."
+                sleep 5
+                gradlew clean
+                gradlew build > $LOCATION/agent.log 2>&1
+                echo "$LINENO gnome-terminal: $?"
+                sleep 5
+            else
+                echo
+                echo -n "  Ready..."
+                echo 'Done.' >$LOCATION/agent.log
+            fi
+
+            cd $SERVER/scripts/
 
             server_start
 
@@ -1094,22 +1112,19 @@ while true; do
 
             fi
 
-            #エージェント起動
-            cd $AGENT
-
-            if [[ $loop -eq 0 ]]; then
-                echo
-                echo -n "  コンパイル中..."
-                gradlew clean
-                gradlew build > $LOCATION/agent.log 2>&1
-                echo "$LINENO gnome-terminal: $?"
-            else
-                echo
-                echo -n "  Ready..."
-                echo 'Done.' >$LOCATION/agent.log
-            fi
 
             bash ./launch.sh -all -local >>$LOCATION/agent.log 2>&1 &
+
+            if [[ $? -ne 0 ]]; then
+
+                echo "[debug] HIT $LINENO"
+                exit 1
+
+            fi
+
+
+
+            fi
 
             cd $LOCATION
 
