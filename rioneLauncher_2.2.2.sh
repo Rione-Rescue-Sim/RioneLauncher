@@ -1117,8 +1117,8 @@ while true; do
 
             fi
 
-
-            bash ./launch.sh -all -local >>$LOCATION/agent.log 2>&1 &
+            echo "bash ./launch.sh -all -local >> $LOCATION/agent.log 2>&1 &"
+            bash ./launch.sh -all -local >> $LOCATION/agent.log 2>&1 &
 
             cd $LOCATION
 
