@@ -1084,12 +1084,12 @@ while true; do
                     echo "コンパイルに失敗しました"
                     exit 1
                 fi
-                sleep 5
+                sleep 1
             else
                 echo
                 echo -n "  Ready..."
                 echo 'Done.' >$LOCATION/agent.log
-                sleep 3
+                sleep 1
             fi
 
             cd $SERVER/scripts/
@@ -1117,8 +1117,15 @@ while true; do
 
             fi
 
-            echo "bash ./launch.sh -all -local >> $LOCATION/agent.log 2>&1 &"
-            bash ./launch.sh -all -local >> $LOCATION/agent.log 2>&1 &
+            if [[ -f 'start.sh' ]]; then
+
+                bash start.sh -1 -1 -1 -1 -1 -1 localhost >>$LOCATION/agent.log 2>&1 &
+
+            else
+
+                bash ./launch.sh -all -local >>$LOCATION/agent.log 2>&1 &
+
+            fi
 
             cd $LOCATION
 
