@@ -1078,8 +1078,8 @@ while true; do
                 echo -n "  コンパイル中..."
                 ./gradlew clean
                 ./gradlew build | tee $LOCATION/agent.log
-                echo "$LINENO gnome-terminal: $?"
                 grep "BUILD FAILED" $LOCATION/agent.log
+                echo "$LINENO gnome-terminal: $?"
                 if [[ $? -ne 0 ]]; then
                     echo "コンパイルに失敗しました"
                     exit 1
