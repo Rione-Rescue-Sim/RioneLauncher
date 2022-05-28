@@ -1070,27 +1070,6 @@ while true; do
             sed -i "s/$(cat $START_LAUNCH | grep 'startKernel')/startKernel --nomenu --autorun/g" $START_LAUNCH
             sed -i "s/$(cat $START_LAUNCH | grep 'startSims')/startSims --nogui/g" $START_LAUNCH
 
-            #エージェント起動
-            cd $AGENT
-
-            if [[ $loop -eq 0 ]]; then
-                pwd
-                echo -n "  コンパイル中..."
-                ./gradlew clean
-                ./gradlew build | tee $LOCATION/agent.log
-                grep "BUILD FAILED" $LOCATION/agent.log
-                echo "$LINENO gnome-terminal: $?"
-                if [[ $? -ne 0 ]]; then
-                    echo "コンパイルに失敗しました"
-                    exit 1
-                fi
-                sleep 1
-            else
-                echo
-                echo -n "  Ready..."
-                echo 'Done.' >$LOCATION/agent.log
-                sleep 1
-            fi
 
             cd $SERVER/scripts/
 
@@ -1124,10 +1103,21 @@ while true; do
             if [[ $loop -eq 0 ]]; then
                 echo
                 echo -n "  コンパイル中..."
-                touch agent.log
+                touch $LOCATION/agent.log
                 ./gradlew clean
                 ./gradlew build 2>&1 | tee $LOCATION/agent.log
                 sleep 1
+                 original_clear
+
+                echo
+                echo " ▼ 以下の環境を読み込んでいます..."
+                echo
+                echo "      サーバー ："$(echo $SERVER | sed 's@/@ @g' | awk '{print $NF}')
+                echo "  エージェント ："$(echo $AGENT | sed 's@/@ @g' | awk '{print $NF}')
+                echo "        マップ ："$(echo $MAP | sed 's@/map/@@g' | sed 's@/maps@maps@g')
+                echo "  　　　　瓦礫 ：$brockademenu"
+                echo "  　　ブランチ ：$current_branch"
+
             else
                 echo
                 echo -n "  Ready..."
@@ -1135,8 +1125,7 @@ while true; do
             fi
 
             # コンパイルエラー検知
-            grep "BUILD FAILED" $LOCATION/agent.log > /dev/null
-            if [[ $? -eq 0 ]]; then
+            if [[ $(grep -c "BUILD FAILED" $LOCATION/agent.log) -ne 0 ]]; then
 
                 echo "コンパイルに失敗しました"
                 killcommand
@@ -1223,17 +1212,6 @@ while true; do
                 fi
 
             fi
-
-            original_clear
-
-            echo
-            echo " ▼ 以下の環境を読み込んでいます..."
-            echo
-            echo "      サーバー ："$(echo $SERVER | sed 's@/@ @g' | awk '{print $NF}')
-            echo "  エージェント ："$(echo $AGENT | sed 's@/@ @g' | awk '{print $NF}')
-            echo "        マップ ："$(echo $MAP | sed 's@/map/@@g' | sed 's@/maps@maps@g')
-            echo "  　　　　瓦礫 ：$brockademenu"
-            echo "  　　ブランチ ：$current_branch"
 
             while true; do
 
