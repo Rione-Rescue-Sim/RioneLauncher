@@ -100,11 +100,11 @@ killcommand() {
 
     fi
 
-    if [[ -f $SERVER/boot/"backup-$START_LAUNCH" ]]; then
+    if [[ -f $SERVER/scripts/"backup-$START_LAUNCH" ]]; then
 
-        rm $SERVER/boot/$START_LAUNCH
-        cat $SERVER/boot/backup-$START_LAUNCH >$SERVER/boot/$START_LAUNCH
-        rm $SERVER/boot/"backup-$START_LAUNCH"
+        rm $SERVER/scripts/$START_LAUNCH
+        cat $SERVER/scripts/backup-$START_LAUNCH >$SERVER/scripts/$START_LAUNCH
+        rm $SERVER/scripts/"backup-$START_LAUNCH"
 
     fi
 
@@ -254,9 +254,9 @@ last() {
         echo
         echo " シミュレーションを中断します...Σ(ﾟДﾟﾉ)ﾉ"
         echo
-        if [[ -f $SERVER/boot/logs/kernel.log ]] && [[ ! -z $(grep -a -C 0 'Score:' $SERVER/boot/logs/kernel.log | tail -n 1 | awk '{print $5}') ]]; then
+        if [[ -f $SERVER/logs/log/kernel.log ]] && [[ ! -z $(grep -a -C 0 'Score:' $SERVER/logs/log/kernel.log | tail -n 1 | awk '{print $5}') ]]; then
             echo
-            echo "◆　これまでのスコア : "$(grep -a -C 0 'Score:' $SERVER/boot/logs/kernel.log | tail -n 1 | awk '{print $5}')
+            echo "◆　これまでのスコア : "$(grep -a -C 0 'Score:' $SERVER/logs/log/kernel.log | tail -n 1 | awk '{print $5}')
             echo
         fi
     fi
@@ -342,11 +342,7 @@ ChangeConditions=0
 if [[ ! -z $1 ]]; then
     if [[ $1 == 'debug' ]]; then
         DEBUG_FLAG='true'
-        if [[ -z $2 ]]; then
-            ChangeConditions=0
-        else
-            ChangeConditions=1
-        fi
+        ChangeConditions=0
     else
         ChangeConditions=1
     fi
@@ -365,107 +361,103 @@ echo "  ● ディレクトリ検索中..."
 IFS=$'\n'
 
 #サーバーディレクトリの登録
-if [[ ${DEBUG_FLAG} == 'false' ]]; then
+if [ -z $SERVER ] || [ $ChangeConditions -eq 1 ] || [ ! -f $SERVER/scripts/start-comprun.sh ] || [ $DEBUG_FLAG = 'false' ]; then
 
-    if [[ -z $SERVER ]] || [[ $ChangeConditions -eq 1 ]] || [[ ! -f $SERVER/boot/start-comprun.sh ]]; then
+    serverdirinfo=($(find ~/ -maxdepth 4 -type d -name ".*" -prune -o -type f -print | grep jars/rescuecore2.jar | sed 's@/jars/rescuecore2.jar@@g')) &>/dev/null
 
-        serverdirinfo=($(find ~/ -maxdepth 4 -type d -name ".*" -prune -o -type f -print | grep jars/rescuecore2.jar | sed 's@/jars/rescuecore2.jar@@g')) &>/dev/null
+    original_clear
 
-        original_clear
+    if [ ${#serverdirinfo[@]} -eq 0 ]; then
 
-        if [ ${#serverdirinfo[@]} -eq 0 ]; then
+        echo
+        echo "サーバーが見つかりません…ｷｮﾛ^(･д･｡)(｡･д･)^ｷｮﾛ"
+        echo
+        exit 1
 
-            echo
-            echo "サーバーが見つかりません…ｷｮﾛ^(･д･｡)(｡･д･)^ｷｮﾛ"
-            echo
-            exit 1
+    fi
 
-        fi
+    if [ ! ${#serverdirinfo[@]} -eq 1 ]; then
 
-        if [ ! ${#serverdirinfo[@]} -eq 1 ]; then
+        #サーバー名+ディレクトリ+文字数
+        count=0
+        for i in ${serverdirinfo[@]}; do
 
-            #サーバー名+ディレクトリ+文字数
-            count=0
-            for i in ${serverdirinfo[@]}; do
+            mapname=$(echo $i | sed 's@/@ @g' | awk '{print $NF}')
 
-                mapname=$(echo $i | sed 's@/@ @g' | awk '{print $NF}')
+            serverdirinfo[$count]=$mapname"+@+"$i"+@+"${#mapname}
 
-                serverdirinfo[$count]=$mapname"+@+"$i"+@+"${#mapname}
+            count=$(($count + 1))
 
-                count=$(($count + 1))
+        done
 
-            done
+        #文字数最大値取得
+        maxservername=$(echo "${serverdirinfo[*]}" | sed 's/+@+/ /g' | awk '{if(m<$3) m=$3} END{print m}')
 
-            #文字数最大値取得
-            maxservername=$(echo "${serverdirinfo[*]}" | sed 's/+@+/ /g' | awk '{if(m<$3) m=$3} END{print m}')
+        #ソート
+        serverdirinfo=($(echo "${serverdirinfo[*]}" | sort -f))
 
-            #ソート
-            serverdirinfo=($(echo "${serverdirinfo[*]}" | sort -f))
+        #エージェントリスト表示
+        line=0
 
-            #エージェントリスト表示
-            line=0
+        echo
+        echo "▼ サーバーリスト"
+        echo
 
-            echo
-            echo "▼ サーバーリスト"
-            echo
+        for i in ${serverdirinfo[@]}; do
 
-            for i in ${serverdirinfo[@]}; do
+            servername=$(echo ${i} | sed 's/+@+/ /g' | awk '{print $1}')
+            serverdir=$(echo ${i} | sed 's/+@+/ /g' | awk '{print $2}')
 
-                servername=$(echo ${i} | sed 's/+@+/ /g' | awk '{print $1}')
-                serverdir=$(echo ${i} | sed 's/+@+/ /g' | awk '{print $2}')
+            printf "%3d  %s" $((++line)) $servername
 
-                printf "%3d  %s" $((++line)) $servername
+            for ((space = $(($maxservername - ${#servername} + 5)); space > 0; space--)); do
 
-                for ((space = $(($maxservername - ${#servername} + 5)); space > 0; space--)); do
-
-                    printf " "
-
-                done
-
-                printf "%s\n" $(echo $serverdir | sed "s@/home/$USER/@@g" | sed "s@$servername@@g")
+                printf " "
 
             done
 
-            echo
-            echo "上のリストからサーバーを選択してください。"
-            echo "(※ 0を入力するとデフォルトになります)"
+            printf "%s\n" $(echo $serverdir | sed "s@/home/$USER/@@g" | sed "s@$servername@@g")
 
-            while true; do
+        done
 
-                read servernumber
+        echo
+        echo "上のリストからサーバーを選択してください。"
+        echo "(※ 0を入力するとデフォルトになります)"
 
-                #入力エラーチェック
-                if [ ! -z $(expr "$servernumber" : '\([0-9][0-9]*\)') ] && [ 0 -lt $servernumber ] && [ $servernumber -le $line ]; then
+        while true; do
 
-                    #アドレス代入
-                    SERVER=$(echo ${serverdirinfo[$(($servernumber - 1))]} | sed 's/+@+/ /g' | awk '{print $2}')
+            read servernumber
+
+            #入力エラーチェック
+            if [ ! -z $(expr "$servernumber" : '\([0-9][0-9]*\)') ] && [ 0 -lt $servernumber ] && [ $servernumber -le $line ]; then
+
+                #アドレス代入
+                SERVER=$(echo ${serverdirinfo[$(($servernumber - 1))]} | sed 's/+@+/ /g' | awk '{print $2}')
+                break
+
+            elif [ ! -z $(expr "$servernumber" : '\([0-9][0-9]*\)') ] && [ $servernumber -eq 0 ]; then
+
+                if [ -f $SERVER/scripts/start-comprun.sh ]; then
+
                     break
-
-                elif [ ! -z $(expr "$servernumber" : '\([0-9][0-9]*\)') ] && [ $servernumber -eq 0 ]; then
-
-                    if [ -f $SERVER/boot/start-comprun.sh ]; then
-
-                        break
-
-                    else
-
-                        echo "デフォルトの設定が不正確です。0以外を入力してください。"
-
-                    fi
 
                 else
 
-                    echo "もう一度入力してください。"
+                    echo "デフォルトの設定が不正確です。0以外を入力してください。"
 
                 fi
 
-            done
+            else
 
-        else
+                echo "もう一度入力してください。"
 
-            SERVER=${serverdirinfo[0]}
+            fi
 
-        fi
+        done
+
+    else
+
+        SERVER=${serverdirinfo[0]}
 
     fi
 
@@ -473,235 +465,231 @@ fi
 
 
 #エージェントディレクトリの登録
-if [[ ${DEBUG_FLAG} == 'false' ]]; then
-    if [ -z $AGENT ] || [ $ChangeConditions -eq 1 ] || [ ! -f $AGENT/library/rescue/adf/adf-core.jar ]; then
+if [ -z $AGENT ] || [ $ChangeConditions -eq 1 ] || [ ! -f $AGENT/library/rescue/adf/adf-core.jar ] || [ ${DEBUG_FLAG} == 'false' ]; then
 
-        agentdirinfo=($(find ~/ -maxdepth 4 -type d -name ".*" -prune -o -type f -print | grep config/module.cfg | sed 's@/config/module.cfg@@g')) &>/dev/null
+    agentdirinfo=($(find ~/ -maxdepth 4 -type d -name ".*" -prune -o -type f -print | grep config/module.cfg | sed 's@/config/module.cfg@@g')) &>/dev/null
 
-        original_clear
+    original_clear
 
-        if [ ${#agentdirinfo[@]} -eq 0 ]; then
+    if [ ${#agentdirinfo[@]} -eq 0 ]; then
 
-            echo
-            echo "エージェントが見つかりません…ｷｮﾛ^(･д･｡)(｡･д･)^ｷｮﾛ"
-            echo
-            exit 1
+        echo
+        echo "エージェントが見つかりません…ｷｮﾛ^(･д･｡)(｡･д･)^ｷｮﾛ"
+        echo
+        exit 1
 
-        fi
+    fi
 
-        if [ ! ${#agentdirinfo[@]} -eq 1 ]; then
+    if [ ! ${#agentdirinfo[@]} -eq 1 ]; then
 
-            #エージェント名+ディレクトリ+文字数
-            count=0
-            for i in ${agentdirinfo[@]}; do
+        #エージェント名+ディレクトリ+文字数
+        count=0
+        for i in ${agentdirinfo[@]}; do
 
-                agentname=$(echo $i | sed 's@/@ @g' | awk '{print $NF}')
+            agentname=$(echo $i | sed 's@/@ @g' | awk '{print $NF}')
 
-                agentdirinfo[$count]=$agentname"+@+"$i"+@+"${#agentname}
+            agentdirinfo[$count]=$agentname"+@+"$i"+@+"${#agentname}
 
-                count=$(($count + 1))
+            count=$(($count + 1))
 
-            done
+        done
 
-            #文字数最大値取得
-            maxagentname=$(echo "${agentdirinfo[*]}" | sed 's/+@+/ /g' | awk '{if(m<$3) m=$3} END{print m}')
+        #文字数最大値取得
+        maxagentname=$(echo "${agentdirinfo[*]}" | sed 's/+@+/ /g' | awk '{if(m<$3) m=$3} END{print m}')
 
-            #ソート
-            agentdirinfo=($(echo "${agentdirinfo[*]}" | sort -f))
+        #ソート
+        agentdirinfo=($(echo "${agentdirinfo[*]}" | sort -f))
 
-            #エージェントリスト表示
-            line=0
+        #エージェントリスト表示
+        line=0
 
-            echo
-            echo "▼ エージェントリスト"
-            echo
+        echo
+        echo "▼ エージェントリスト"
+        echo
 
-            for i in ${agentdirinfo[@]}; do
+        for i in ${agentdirinfo[@]}; do
 
-                agentname=$(echo ${i} | sed 's/+@+/ /g' | awk '{print $1}')
-                agentdir=$(echo ${i} | sed 's/+@+/ /g' | awk '{print $2}')
+            agentname=$(echo ${i} | sed 's/+@+/ /g' | awk '{print $1}')
+            agentdir=$(echo ${i} | sed 's/+@+/ /g' | awk '{print $2}')
 
-                printf "%3d  %s" $((++line)) $agentname
+            printf "%3d  %s" $((++line)) $agentname
 
-                for ((space = $(($maxagentname - ${#agentname} + 5)); space > 0; space--)); do
+            for ((space = $(($maxagentname - ${#agentname} + 5)); space > 0; space--)); do
 
-                    printf " "
-
-                done
-
-                printf "%s\n" $(echo $agentdir | sed "s@/home/$USER/@@g" | sed "s@$agentname@@g")
+                printf " "
 
             done
 
-            echo
-            echo "上のリストからエージェントを選択してください。"
-            echo "(※ 0を入力するとデフォルトになります)"
+            printf "%s\n" $(echo $agentdir | sed "s@/home/$USER/@@g" | sed "s@$agentname@@g")
 
-            while true; do
+        done
 
-                read agentnumber
+        echo
+        echo "上のリストからエージェントを選択してください。"
+        echo "(※ 0を入力するとデフォルトになります)"
 
-                #入力エラーチェック
-                if [ ! -z $(expr "$agentnumber" : '\([0-9][0-9]*\)') ] && [ 0 -lt $agentnumber ] && [ $agentnumber -le $line ]; then
+        while true; do
 
-                    #アドレス代入
-                    AGENT=$(echo ${agentdirinfo[$(($agentnumber - 1))]} | sed 's/+@+/ /g' | awk '{print $2}')
+            read agentnumber
+
+            #入力エラーチェック
+            if [ ! -z $(expr "$agentnumber" : '\([0-9][0-9]*\)') ] && [ 0 -lt $agentnumber ] && [ $agentnumber -le $line ]; then
+
+                #アドレス代入
+                AGENT=$(echo ${agentdirinfo[$(($agentnumber - 1))]} | sed 's/+@+/ /g' | awk '{print $2}')
+                break
+
+            elif [ ! -z $(expr "$agentnumber" : '\([0-9][0-9]*\)') ] && [ $agentnumber -eq 0 ]; then
+
+                if [ -f $AGENT/library/rescue/adf/adf-core.jar ]; then
+
                     break
-
-                elif [ ! -z $(expr "$agentnumber" : '\([0-9][0-9]*\)') ] && [ $agentnumber -eq 0 ]; then
-
-                    if [ -f $AGENT/library/rescue/adf/adf-core.jar ]; then
-
-                        break
-
-                    else
-
-                        echo "デフォルトの設定が不正確です。0以外を入力してください。"
-
-                    fi
 
                 else
 
-                    echo "もう一度入力してください。"
+                    echo "デフォルトの設定が不正確です。0以外を入力してください。"
 
                 fi
 
-            done
+            else
 
-        else
+                echo "もう一度入力してください。"
 
-            AGENT=${agentdirinfo[0]}
+            fi
 
-        fi
+        done
+
+    else
+
+        AGENT=${agentdirinfo[0]}
 
     fi
+
 fi
 
 #マップディレクトリの登録
-if [[ ${DEBUG_FLAG} == 'false' ]]; then
-    if [ ! -f $SERVER/$MAP/scenario.xml ] || [ $ChangeConditions -eq 1 ] || [ -z $MAP ]; then
+if [ ! -f $SERVER/$MAP/scenario.xml ] || [ $ChangeConditions -eq 1 ] || [ -z $MAP ] || [ ${DEBUG_FLAG} == 'false' ]; then
 
-        mapdirinfo=($(find $SERVER/maps -name scenario.xml | sed 's@scenario.xml@@g'))
+    mapdirinfo=($(find $SERVER/maps -name scenario.xml | sed 's@scenario.xml@@g'))
 
-        original_clear
+    original_clear
 
-        #エラーチェック
-        if [ ${#mapdirinfo[@]} -eq 0 ]; then
+    #エラーチェック
+    if [ ${#mapdirinfo[@]} -eq 0 ]; then
 
-            echo
-            echo "マップが見つかりません…ｷｮﾛ^(･д･｡)(｡･д･)^ｷｮﾛ"
-            echo
-            exit 1
-
-        fi
-
-        if [ ! ${#mapdirinfo[@]} -eq 1 ]; then
-
-            #マップ名+ディレクトリ+文字数,不機能マップ除外
-            count=0
-            for i in ${mapdirinfo[@]}; do
-
-                if [ -f $i/map.gml ]; then
-
-                    mapname=$(echo ${mapdirinfo[$count]} | sed 's@/map/@@g' | sed 's@/@ @g' | awk '{print $NF}')
-                    mapdir=$(echo ${mapdirinfo[$count]} | sed "s@$SERVER/@@g")
-
-                    mapdirinfo[$count]=$mapname"+@+"$mapdir"+@+"${#mapname}
-
-                else
-
-                    unset mapdirinfo[$count]
-
-                fi
-
-                count=$((count + 1))
-
-            done
-
-            #ソート
-            mapdirinfo=($(echo "${mapdirinfo[*]}" | sort -f))
-
-            #マップ名最大値取得
-            maxmapname=$(echo "${mapdirinfo[*]}" | sed 's/+@+/ /g' | awk '{if(m<$3) m=$3} END{print m}')
-
-            #マップ表示
-            line=1
-            echo
-            echo "▼ マップリスト"
-            echo
-
-            toalMapCount=0
-
-            for i in ${mapdirinfo[@]}; do
-
-                mapname=$(echo $i | sed 's/+@+/ /g' | awk '{print $1}')
-                mapdir=$(echo $i | sed 's/+@+/ /g' | awk '{print $2}')
-
-                printf "%3d  %s" $line $mapname
-
-                for ((space = $(($maxmapname - ${#mapname} + 5)); space > 0; space--)); do
-
-                    printf " "
-
-                done
-
-                printf "%s\n" $(echo $mapdir | sed 's@/map/@@g' | sed "s@$mapname@@g" | sed 's@//@/@g')
-
-                line=$(($line + 1))
-                toalMapCount=$(($toalMapCount + 1))
-
-            done
-            echo " 99  すべてのマップ"
-            echo
-            echo "上のリストからマップ番号を選択してください(0を入力するとデフォルトを選択します)。"
-
-            while true; do
-
-                read mapnumber
-                doAllMap="false"
-
-                #入力エラーチェック
-                if [ ! -z $(expr "$mapnumber" : '\([0-9][0-9]*\)') ] && [ 0 -lt $mapnumber ] && [ $mapnumber -le $line ]; then
-
-                    #アドレス代入
-                    MAP=$(echo ${mapdirinfo[$(($mapnumber - 1))]} | sed 's/+@+/ /g' | awk '{print $2}')
-                    break
-
-                elif [ ! -z $(expr "$mapnumber" : '\([0-9][0-9]*\)') ] && [ $mapnumber -eq 0 ]; then
-
-                    if [ -f $SERVER/$MAP/scenario.xml ]; then
-
-                        break
-
-                    else
-
-                        echo "デフォルトの設定が不正確です。0以外を入力してください。"
-
-                    fi
-
-                elif [ $mapnumber -eq 99 ]; then
-
-                    echo "testを除くマップで実行します"
-                    doAllMap="true"
-                    #アドレス代入
-                    MAP=$(echo ${mapdirinfo[0]} | sed 's/+@+/ /g' | awk '{print $2}')
-                    break
-
-                else
-
-                    echo "もう一度入力してください。"
-                    echo ""
-                fi
-
-            done
-
-        else
-
-            MAP=$(echo ${mapdirinfo[0]} | sed "s@$SERVER@@g")
-
-        fi
+        echo
+        echo "マップが見つかりません…ｷｮﾛ^(･д･｡)(｡･д･)^ｷｮﾛ"
+        echo
+        exit 1
 
     fi
+
+    if [ ! ${#mapdirinfo[@]} -eq 1 ]; then
+
+        #マップ名+ディレクトリ+文字数,不機能マップ除外
+        count=0
+        for i in ${mapdirinfo[@]}; do
+
+            if [ -f $i/map.gml ]; then
+
+                mapname=$(echo ${mapdirinfo[$count]} | sed 's@/map/@@g' | sed 's@/@ @g' | awk '{print $NF}')
+                mapdir=$(echo ${mapdirinfo[$count]} | sed "s@$SERVER/@@g")
+
+                mapdirinfo[$count]=$mapname"+@+"$mapdir"+@+"${#mapname}
+
+            else
+
+                unset mapdirinfo[$count]
+
+            fi
+
+            count=$((count + 1))
+
+        done
+
+        #ソート
+        mapdirinfo=($(echo "${mapdirinfo[*]}" | sort -f))
+
+        #マップ名最大値取得
+        maxmapname=$(echo "${mapdirinfo[*]}" | sed 's/+@+/ /g' | awk '{if(m<$3) m=$3} END{print m}')
+
+        #マップ表示
+        line=1
+        echo
+        echo "▼ マップリスト"
+        echo
+
+        toalMapCount=0
+
+        for i in ${mapdirinfo[@]}; do
+
+            mapname=$(echo $i | sed 's/+@+/ /g' | awk '{print $1}')
+            mapdir=$(echo $i | sed 's/+@+/ /g' | awk '{print $2}')
+
+            printf "%3d  %s" $line $mapname
+
+            for ((space = $(($maxmapname - ${#mapname} + 5)); space > 0; space--)); do
+
+                printf " "
+
+            done
+
+            printf "%s\n" $(echo $mapdir | sed 's@/map/@@g' | sed "s@$mapname@@g" | sed 's@//@/@g')
+
+            line=$(($line + 1))
+            toalMapCount=$(($toalMapCount + 1))
+
+        done
+        echo " 99  すべてのマップ"
+        echo
+        echo "上のリストからマップ番号を選択してください(0を入力するとデフォルトを選択します)。"
+
+        while true; do
+
+            read mapnumber
+            doAllMap="false"
+
+            #入力エラーチェック
+            if [ ! -z $(expr "$mapnumber" : '\([0-9][0-9]*\)') ] && [ 0 -lt $mapnumber ] && [ $mapnumber -le $line ]; then
+
+                #アドレス代入
+                MAP=$(echo ${mapdirinfo[$(($mapnumber - 1))]} | sed 's/+@+/ /g' | awk '{print $2}')
+                break
+
+            elif [ ! -z $(expr "$mapnumber" : '\([0-9][0-9]*\)') ] && [ $mapnumber -eq 0 ]; then
+
+                if [ -f $SERVER/$MAP/scenario.xml ]; then
+
+                    break
+
+                else
+
+                    echo "デフォルトの設定が不正確です。0以外を入力してください。"
+
+                fi
+
+            elif [ $mapnumber -eq 99 ]; then
+
+                echo "testを除くマップで実行します"
+                doAllMap="true"
+                #アドレス代入
+                MAP=$(echo ${mapdirinfo[0]} | sed 's/+@+/ /g' | awk '{print $2}')
+                break
+
+            else
+
+                echo "もう一度入力してください。"
+                echo ""
+            fi
+
+        done
+
+    else
+
+        MAP=$(echo ${mapdirinfo[0]} | sed "s@$SERVER@@g")
+
+    fi
+
 fi
 
 cd $SERVER/$MAP
@@ -714,9 +702,9 @@ if [ -e $(pwd)/config/collapse.cfg ]; then #configファイルの存在を確認
 
 else
 
-    if [ -e $SERVER/boot/config/collapse.cfg ]; then
+    if [ -e $SERVER/$MAP/config/collapse.cfg ]; then
 
-        CONFIG=$SERVER/boot/config/collapse.cfg
+        CONFIG=$SERVER/$MAP/config/collapse.cfg
 
     else
 
@@ -733,48 +721,47 @@ cd $LOCATION
 
 #瓦礫有無選択
 defalutblockade=$(cat $CONFIG | grep "collapse.create-road-blockages" | awk '{print $2}')
-if [[ ${DEBUG_FLAG} == 'false' ]]; then
-    if [ ! $brockade = "false" ] && [ ! $brockade = "true" ] || [ $ChangeConditions -eq 1 ]; then
+if [ ! $brockade = "false" ] && [ ! $brockade = "true" ] || [ $ChangeConditions -eq 1 ] || [ ${DEBUG_FLAG} == 'false' ]; then
 
-        original_clear
+    original_clear
 
-        echo
-        echo "瓦礫を配置しますか？(y/n)"
+    echo
+    echo "瓦礫を配置しますか？(y/n)"
 
-        while true; do
-            read brockadeselect
+    while true; do
+        read brockadeselect
 
-            #エラー入力チェック
-            if [ $brockadeselect = "n" ]; then
+        #エラー入力チェック
+        if [ $brockadeselect = "n" ]; then
 
-                brockade="false"
-                break
-
-            fi
-
-            if [ $brockadeselect = "y" ]; then
-
-                brockade="true"
-                break
-
-            fi
-
-            echo "もう一度入力してください。"
-
-        done
-
-        original_clear
-
-    else
-
-        if [ -z $brockade ]; then
-
-            brockade=$defalutblockade
+            brockade="false"
+            break
 
         fi
 
+        if [ $brockadeselect = "y" ]; then
+
+            brockade="true"
+            break
+
+        fi
+
+        echo "もう一度入力してください。"
+
+    done
+
+    original_clear
+
+else
+
+    if [ -z $brockade ]; then
+
+        brockade=$defalutblockade
+
     fi
+
 fi
+
 #設定書き込み
 if [ $brockade = "false" ]; then
 
@@ -789,36 +776,34 @@ else
 fi
 
 #ループ回数選択
-if [[ ${DEBUG_FLAG} == "false" ]]; then
-    if [ $LOOP -le 0 ] || [ -z $LOOP ] || [ $ChangeConditions -eq 1 ]; then
+if [ $LOOP -le 0 ] || [ -z $LOOP ] || [ $ChangeConditions -eq 1 ] || [ ${DEBUG_FLAG} == "false" ]; then
 
-        original_clear
+    original_clear
 
-        echo
-        echo "何回実行しますか？(1以上)"
+    echo
+    echo "何回実行しますか？(1以上)"
 
-        while true; do
-            read loopselect
+    while true; do
+        read loopselect
 
-            #エラー入力チェック
-            if [[ -z $(echo "$loopselect" | grep "^[0-9]\+$") ]]; then
-                echo '数字を入力してください。'
-                continue
-            fi
+        #エラー入力チェック
+        if [[ -z $(echo "$loopselect" | grep "^[0-9]\+$") ]]; then
+            echo '数字を入力してください。'
+            continue
+        fi
 
-            if [ $loopselect -le 0 ]; then
-                echo '1以上の数字を入力してください。'
-                continue
-            fi
+        if [ $loopselect -le 0 ]; then
+            echo '1以上の数字を入力してください。'
+            continue
+        fi
 
-            LOOP=$loopselect
-            break
+        LOOP=$loopselect
+        break
 
-        done
+    done
 
-        original_clear
+    original_clear
 
-    fi
 fi
 
 # シャットダウン選択
@@ -1068,7 +1053,7 @@ while true; do
             echo "########## $(($loop + 1)) / $LOOP Start ##################"
             echo
 
-            cd $SERVER/boot/
+            cd $SERVER/scripts/
 
             if [ $(grep -c "trap" start.sh) -eq 1 ]; then
 
@@ -1085,6 +1070,8 @@ while true; do
             sed -i "s/$(cat $START_LAUNCH | grep 'startKernel')/startKernel --nomenu --autorun/g" $START_LAUNCH
             sed -i "s/$(cat $START_LAUNCH | grep 'startSims')/startSims --nogui/g" $START_LAUNCH
 
+
+            cd $SERVER/scripts/
 
             server_start
 
@@ -1112,24 +1099,49 @@ while true; do
             #エージェント起動
             cd $AGENT
 
+            # コンパイル
             if [[ $loop -eq 0 ]]; then
                 echo
                 echo -n "  コンパイル中..."
-                bash compile.sh >$LOCATION/agent.log 2>&1
-                echo "$LINENO gnome-terminal: $?"
+                touch $LOCATION/agent.log
+                ./gradlew clean
+                ./gradlew build 2>&1 | tee $LOCATION/agent.log
+                sleep 1
+                 original_clear
+
+                echo
+                echo " ▼ 以下の環境を読み込んでいます..."
+                echo
+                echo "      サーバー ："$(echo $SERVER | sed 's@/@ @g' | awk '{print $NF}')
+                echo "  エージェント ："$(echo $AGENT | sed 's@/@ @g' | awk '{print $NF}')
+                echo "        マップ ："$(echo $MAP | sed 's@/map/@@g' | sed 's@/maps@maps@g')
+                echo "  　　　　瓦礫 ：$brockademenu"
+                echo "  　　ブランチ ：$current_branch"
+
             else
                 echo
                 echo -n "  Ready..."
                 echo 'Done.' >$LOCATION/agent.log
             fi
 
+            # コンパイルエラー検知
+            if [[ $(grep -c "BUILD FAILED" $LOCATION/agent.log) -ne 0 ]]; then
+
+                echo "コンパイルに失敗しました"
+                killcommand
+                sync
+                exit 1
+
+            fi
+
+            # 実行
             if [[ -f 'start.sh' ]]; then
 
-                bash start.sh -1 -1 -1 -1 -1 -1 localhost >>$LOCATION/agent.log 2>&1 &
+                bash start.sh -1 -1 -1 -1 -1 -1 localhost >> $LOCATION/agent.log 2>&1 &
 
             else
 
-                bash ./launch.sh -all -local >>$LOCATION/agent.log 2>&1 &
+                bash ./launch.sh -all -local >> $LOCATION/agent.log 2>&1 &
 
             fi
 
@@ -1206,7 +1218,7 @@ while true; do
                 kill_subwindow
 
                 #ログ読み込み
-                if [ $(grep -c "trap" $SERVER/boot/start.sh) -eq 1 ]; then
+                if [ $(grep -c "trap" $SERVER/scripts/start.sh) -eq 1 ]; then
 
                     building_read=-1
                     road_read=-1
@@ -1317,7 +1329,7 @@ while true; do
 
                 kill_subwindow
 
-                cycle=$(cat $SERVER/boot/logs/traffic.log | grep -a "Timestep" | grep -a "took" | awk '{print $5}' | tail -n 1)
+                cycle=$(cat $SERVER/logs/log/traffic.log | grep -a "Timestep" | grep -a "took" | awk '{print $5}' | tail -n 1)
 
                 expr $cycle + 1 >/dev/null 2>&1
 
@@ -1406,18 +1418,18 @@ while true; do
                     echo -e "スコア取得中\r\c"
 
                     # while [[ -z `echo $score | grep "^-\?[0-9]\+\.\?[0-9]*$"` ]]; do
-                    #     score=$(grep -a -C 0 'Score:' $SERVER/boot/logs/kernel.log | tail -n 1 | awk '{print $5}')
+                    #     score=$(grep -a -C 0 'Score:' $SERVER/logs/log/kernel.log | tail -n 1 | awk '{print $5}')
                     # done
 
                     sleep 2
                     sync
                     cd
-                    score=$(grep -a -C 0 'Score:' $SERVER/boot/logs/kernel.log | tail -n 1 | awk '{print $5}')
+                    score=$(grep -a -C 0 'Score:' $SERVER/logs/log/kernel.log | tail -n 1 | awk '{print $5}')
                     # そのマップにおけるスコアの桁数の最大値が求められていない場合
                     if [[ $MaxDigitScore -eq 0 ]]; then
                         # 少なくとも5回は桁数の最大値を更新する
                         for ((i = 0; i < 5; i++)); do
-                            score=$(grep -a -C 0 'Score:' $SERVER/boot/logs/kernel.log | tail -n 1 | awk '{print $5}')
+                            score=$(grep -a -C 0 'Score:' $SERVER/logs/log/kernel.log | tail -n 1 | awk '{print $5}')
                             if [[ $MaxDigitScore -lt ${#score} ]]; then
                                 MaxDigitScore=${#score}
                             fi
@@ -1430,7 +1442,7 @@ while true; do
                     loop_cnt=0
                     temp_score=0
                     while true; do
-                        score=$(grep -a -C 0 'Score:' $SERVER/boot/logs/kernel.log | tail -n 1 | awk '{print $5}')
+                        score=$(grep -a -C 0 'Score:' $SERVER/logs/log/kernel.log | tail -n 1 | awk '{print $5}')
                         # socreの桁数が事前に取得した検査用の精度を満たす場合
                         if [[ ${MaxDigitScore} -le ${#score} ]]; then
                             # 取得したスコアの精度が検査用の精度以上のとき
@@ -1558,9 +1570,9 @@ while true; do
 
             else
 
-                if [ -e $SERVER/boot/config/collapse.cfg ]; then
+                if [ -e $SERVER/$MAP/config/collapse.cfg ]; then
 
-                    CONFIG=$SERVER/boot/config/collapse.cfg
+                    CONFIG=$SERVER/$MAP/config/collapse.cfg
 
                 else
 
